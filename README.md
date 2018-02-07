@@ -27,6 +27,10 @@ Using these example publications I have found the these terms appear the most:
   
   Most common time frames: last glaciation, Pleistocene, Holocene, year subsets
   
-Given these key terms, need to select search logic that could return 100 relevant publications, then use string searches for latitude and longitude, ages, diagrams, etc.  
+## Targets with NLP output from GDD team:
 
-Once we have the search logic, I will send it to Ian Ross who will retrieve a subset of the output and send as an NLP file. Once he returns the NLP output, I, along with help from Dr. Simon Goring, could begin to query the text and character strings to make sure the papers contain information of interest. 
+  Extract latitude and longitudes using Simon's code as a template. 
+  
+  Place names using “Who’s on First” (a large Postgres database of place names with associated polygons).
+  
+  Extract time periods using macrostrat and regular expressions.
