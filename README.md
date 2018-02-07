@@ -29,8 +29,8 @@ Using these example publications I have found the these terms appear the most:
   
 ## Targets with NLP output from GDD team:
 
-  Extract latitude and longitudes using Simon's code as a template. 
+  Extract latitude and longitudes using Simon's code as a template (which uses regular expressions to get lat/long).  
   
   Place names using “Who’s on First” (a large Postgres database of place names with associated polygons).
   
-  Extract time periods using macrostrat and regular expressions.
+  Extract time periods using regular expressions and queries for stratigraphic names and regular expressions.
