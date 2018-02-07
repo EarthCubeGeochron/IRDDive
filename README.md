@@ -22,7 +22,9 @@ We will use R and RStudio to do the data processing, GeoDeepDive to retreive doc
 Using these example publications I have found the these terms appear the most:
 
   Terms for IRD: iceberg rafting, IRD, ice-rafted debris, Heinrich events
+  
   These papers talk about IRD in the following locations: North Atlantic, Ruddiman Belt, Hudson Bay, Antarctic
+  
   Most common time frames: last glaciation, Pleistocene, Holocene, year subsets
   
 Given these key terms, need to select search logic that could return 100 relevant publications, then use string searches for latitude and longitude, ages, diagrams, etc.  
