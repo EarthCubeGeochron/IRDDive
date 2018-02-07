@@ -29,4 +29,4 @@ Using these example publications I have found the these terms appear the most:
   
 Given these key terms, need to select search logic that could return 100 relevant publications, then use string searches for latitude and longitude, ages, diagrams, etc.  
 
-Once we have the search logic, I will send it to Ian Ross who will retrieve a subset of the output and send as an NLP file. Once he returns the NLP output, I, along with Simon Goring, could begin to query the text and character strings to make sure the papers contain information of interest (and ideally would contain the above three publications would be in here). 
+Once we have the search logic, I will send it to Ian Ross who will retrieve a subset of the output and send as an NLP file. Once he returns the NLP output, I, along with help from Dr. Simon Goring, could begin to query the text and character strings to make sure the papers contain information of interest. 
