@@ -1,0 +1,24 @@
+query ={
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_phrase": {
+            "contents": "IRD"
+          }
+        },
+        {"bool" : {
+        	"should" : [
+        		{"match_phrase" : {"contents" : "pliocene"}},
+        		{"match_phrase" : {"contents" : "pleistocene"}},
+        		{"match_phrase" : {"contents" : "holocene"}}
+        		]
+        }
+        },
+      ]
+    }
+  },
+  "fields": [
+    "_id", "authors", "title", "doi"
+  ]
+}
