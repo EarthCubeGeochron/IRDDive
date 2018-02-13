@@ -6,6 +6,7 @@
 .RData
 IRDDive.Rproj
 input/sentences_nlp352
+.DS_store
 # Example code in package build process
 *-Ex.R
 
