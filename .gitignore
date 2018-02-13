@@ -5,7 +5,7 @@
 # Session Data files
 .RData
 IRDDive.Rproj
-IRD_sample/sentences_nlp352
+input/sentences_nlp352
 # Example code in package build process
 *-Ex.R
 
