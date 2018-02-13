@@ -1,7 +1,6 @@
 ---
 title: "Finding Site Locations with GeoDeepDive"
-author: "Simon Goring"
-date: "July 16, 2017"
+author: "Jeremiah Marsicek and Simon Goring"
 output:
   html_document:
     code_folding: show
@@ -39,7 +38,7 @@ always_allow_html: yes
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
 ```
 
-## GeoDeepDive
+## Ice-rafted Debris in the Pliocene
 
 GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents.  The GDD output consists of two files, one, `input/bibjson` is a JSON format file that contains bibliographic information about the publications.  The second (really, a set of files, but we're looking at one in particular) is `input/sentences_nlp352`.  The `sentences` file contains several elements, a link to the publication, the individual words in the sentences, an index of the 'words', and then several renderings of the text using NLP.
 
@@ -84,104 +83,6 @@ short_table %>% datatable()
 
 We're interested in trying to use GDD to obtain site coordinates for sites that are not currently in Neotoma.  This would provide two services: (1) it helps Neotoma determine the extent to which its data acquisitions have covered the literature, and (2) it can help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
 
-## Publication Overlap
-
-It's important to try to find the papers that exist both in the GeoDeepDive records and in Neotoma.  These will be test cases.  To do this we need to try matching `publications$title` to the publications in the Neotoma database.  To do this we pull all the Neotoma datasets and then get their associated publications so that the site locations and publications are linked in our data model.  Since this can be time consuming we write the output to an `rds` file so that we can rapidly load and unload the data when knitting.  Then I link the dataset ID to the publication.
-
-```{r, cache = TRUE}
-if('neo_pubs.rds' %in% list.files('data')) {
-  neo_pubs <- readRDS('data/neo_pubs.rds')
-  neo_data <- readRDS('data/neo_data.rds')
-} else {
-  neo_data <- neotoma::get_dataset()
-  neo_pubs <- neotoma::get_publication(neo_data)
-  saveRDS(neo_data, 'data/neo_data.rds')
-  saveRDS(neo_pubs, 'data/neo_pubs.rds')
-}
-
-for(i in 1:length(neo_pubs)) {
-  for(j in 1:length(neo_pubs[[i]])) {
-    neo_pubs[[i]][[j]]$meta$datasetid <- neo_data[[i]]$dataset.meta$dataset.id
-  }
-}
-
-neo_bound <- lapply(neo_pubs, 
-                    function(x) {
-                      lapply(x, function(y)y$meta) %>% bind_rows() 
-                                }) %>% 
-  bind_rows() %>% filter(!is.na(id))
-```
-
-This then generates a long table, with the site and datasetid, the publication type, year of publication and the citation.  Once we've generated this long table for the neotoma publications we need to match it against the publications in the GeoDeepDive corpus (or partial corpus):
-
-```{r, echo = FALSE, results = 'as-is'}
-DT::datatable(head(neo_bound))
-```
-
-
-```{r, message=FALSE, warning=FALSE}
-
-if(!'matches.rds' %in% list.files('data')) {
-  matches <- list()
-  
-  for(i in 1:nrow(publications)) {
-    test <- agrep(publications$title[i], 
-                  neo_bound$citation,
-                  ignore.case = TRUE)
-    if(length(test) == 0) {
-      matches[[i]] <- data.frame(gddid = publications$`_gddid`[i],
-                                 pub = publications$title[i], 
-                                 year = publications$year[i], 
-                                 neotoma = NA,
-                                 stringsAsFactors = FALSE)
-    } else {
-      matches[[i]] <- data.frame(gddid = publications$`_gddid`[i],
-                                 pub = publications$title[i],
-                                 pubid = neo_bound$id[test],
-                                 year = publications$year[i],
-                                 dsid = neo_bound$datasetid[test],
-                                 neotoma = neo_bound$citation[test],
-                                 stringsAsFactors = FALSE)
-    }
-  }
-  
-  matches <- matches %>% bind_rows()
-  saveRDS(matches, 'data/matches.rds')
-} else {
-  matches <- readRDS('data/matches.rds')
-}
-```
-
-In this setup the `agrep()` command is a bit slow, and it's cycling through all of the Neotoma publications, and matching them against the DeepDive publications, for a total of `r format(nrow(publications) * nrow(neo_bound), big.mark = ',', digits = 3)` approximate `agrep()` matches.  There is most likely a more efficient way of managing this (perhaps using the `stringr` package), but this is a simple short term solution.
-
-From the matching we get `r sum(!is.na(matches$neotoma))` datasets from `r length(unique(matches$neotoma))` papers in Neotoma that match `r length(unique(na.omit(matches)$gddid))` GeoDeepDive papers.  This is a curious mismatch in paper numbers.  We ought to expect that the Neotoma:GeoDeepDive match rate is 1:1, that each GeoDeepDive paper should match the same Neotoma paper.  It appears that this is, in part, the result of a duplicate Neotoma publication entry for Fréchette et al., 2006 (*pubid*s 7473 and 7820).
-
-### Coordinates in the matched papers
-
-Neotoma can provide us the coordinates for the publications found in both Neotoma and the GDD publications.
-
-```{r}
-
-neo_datawide <- neo_data %>% map(function(x){
-  data.frame( lat = x$site.data$lat,
-             long = x$site.data$long,
-             dsid = x$dataset.meta$dataset.id,
-             snam = x$site.data$site.name,
-             dst = x$dataset.meta$dataset.type)}) %>%
-  bind_rows()
-
-matched_loc <- neo_datawide %>% filter(dsid %in% matches$dsid)
-
-leaflet(matched_loc) %>% 
-  addTiles() %>% 
-  addCircleMarkers(lat = ~lat, lng = ~long,
-                   clusterOptions = markerClusterOptions(),
-                   popup = paste0('<b>', matched_loc$snam, '</b><br><b>Type:</b> ',
-                                  matched_loc$dst,
-                                  '<br><a href=http://apps.neotomadb.org/explorer/?datasetid=',
-                                  matched_loc$dsid,'>Explorer Link</a>'))
-
-```
 
 ## Getting Coordinates
 
@@ -320,37 +221,21 @@ for(i in 1:length(decdeg)) {
   }
 }
 
-coordinates <- coordinates %>% bind_rows %>% 
+coordinates_df <- coordinates %>% bind_rows %>% 
   mutate(sentence = gsub(',', ' ', sentence)) %>% 
   mutate(sentence = str_replace_all(sentence, '-LRB-', '(')) %>% 
   mutate(sentence = str_replace_all(sentence, '-RRB-', ')')) %>% 
-  mutate(sentence = str_replace_all(sentence, '" "', ',')) %>% 
-  mutate(matched = ifelse(X_gddid %in% matches$gddid[!is.na(matches$dsid)], "red", "black"))
+  mutate(sentence = str_replace_all(sentence, '" "', ','))
 
-leaflet(coordinates) %>% 
+leaflet(coordinates_df) %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
-  addCircleMarkers(popup = paste0('<b>', coordinates$title, '</b><br>',
+  addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
                                   '<a href=http://dx.doi.org/',
-                                  coordinates$title,'>Publication Link</a><br>',
+                                  coordinates_df$title,'>Publication Link</a><br>',
                                   '<b>Sentence:</b><br>',
-                                  '<small>',gsub(',', ' ', coordinates$sentence),
-                                  '</small>'),
-                   color = ~matched)
+                                  '<small>',gsub(',', ' ', coordinates_df$sentence),
+                                  '</small>'))
 
 ```
 
 So here are the sites that we pull out from GeoDeepDive.  It should be obvious here that there are clear limitations to the current methods.  First, the only records returned here are records that are currently in Neotoma (coloured red).  There was a facet used in plotting to differentiate between existing (red) and new records (black), and it appears that no new records were found.
-
-# Error Checking
-
-Given that we have a number of matched recorrds, we can improve our `regex` by looking at the publications that don't show up in our pulled records.
-
-```{r}
-
-missed_match <- matches %>% filter(!is.na(dsid) & !gddid %in% coordinates$X_gddid) %>% distinct(gddid)
-
-```
-
-This gives a set of `r nrow(missed_match)` articles that ought to have paired locations, but appear to be missing when we apply the regex to the records.  So what are they missing?
-
-Its possible to sort through these, but unfortunately, this is an itterative process, and so as I work on this project the potential matches decline as the regex improves.
