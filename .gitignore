@@ -4,7 +4,8 @@
 
 # Session Data files
 .RData
-
+IRDDive.Rproj
+IRD_sample/sentences_nlp525
 # Example code in package build process
 *-Ex.R
 
@@ -31,3 +32,4 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+.Rproj.user
