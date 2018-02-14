@@ -1,5 +1,5 @@
 ---
-title: "Finding Site Locations with GeoDeepDive"
+title: "Finding Ice-Rafted Debris Site Locations over the Pliocene with GeoDeepDive"
 author: "Jeremiah Marsicek and Simon Goring"
 output:
   html_document:
@@ -38,9 +38,9 @@ always_allow_html: yes
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
 ```
 
-## Ice-rafted Debris in the Pliocene
+## Ice-rafted debris in the Pliocene
 
-GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents.  The GDD output consists of two files, one, `input/bibjson` is a JSON format file that contains bibliographic information about the publications.  The second (really, a set of files, but we're looking at one in particular) is `input/sentences_nlp352`.  The `sentences` file contains several elements, a link to the publication, the individual words in the sentences, an index of the 'words', and then several renderings of the text using NLP.
+GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents (a description of GDD output was written by @SimonGoring and can be found at http://www.goring.org/empty-spaces/empty-spaces.html). Our goal is to mine papers that contain ice-rafted debris (IRD) data over the Pliocene, determine whether those publications contain actual IRD data and locations, mine the coordinates, and plot the global distribution of IRD events over the last 5.3 million years (and perhaps their source material). This will be important for understanding X, Y, and Z.   
 
 To begin, we want to load the packages we will be using, and then import the data:
 
@@ -81,12 +81,12 @@ short_table[nchar(short_table[,1])>40,1] <-
 short_table %>% datatable()
 ```
 
-We're interested in trying to use GDD to obtain site coordinates for sites that are not currently in Neotoma.  This would provide two services: (1) it helps Neotoma determine the extent to which its data acquisitions have covered the literature, and (2) it can help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
+We're interested in trying to use GDD to obtain site coordinates for sites that contain IRD data over the last 5 million years.  This would help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
 
 
 ## Getting Coordinates
 
-To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual pollen core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
+To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
 
 | Coordinates |
 | ----------- |
@@ -238,4 +238,8 @@ leaflet(coordinates_df) %>%
 
 ```
 
-So here are the sites that we pull out from GeoDeepDive.  It should be obvious here that there are clear limitations to the current methods.  First, the only records returned here are records that are currently in Neotoma (coloured red).  There was a facet used in plotting to differentiate between existing (red) and new records (black), and it appears that no new records were found.
+So here are the sites that we pull out from GeoDeepDive. We find 58 papers with coordinates out of 150 documents in the IRDDive test dump. It should be obvious here that there are clear limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data and chop the Intro and Discussion? To help, we could also string search words around coordinates to determine what type of data the paper is referring to and drop it from the final list if it does not match contain a reference to IRD. 
+
+## Next Steps
+
+Next steps include a visual inspection of the papers. We need to know if the paper contains IRD data and we are extracting the coordinates. In papers where it is found, where is it found and are the useful cues around it to help in a search of the documents (e.g., it's always mentioned in the Methods)? In papers where it is not found, why did it return that paper (i.e., why are the current methods missing it)? Perhaps the paper mentions IRD but contains large tables or there are pairs of coordinates that represent E-W, N-S bounds. Doing these things will help us find the papers that contain IRD core data with coordinate pairs and help to eliminate papers that do not.  
