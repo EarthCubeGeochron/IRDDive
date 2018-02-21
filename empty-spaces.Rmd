@@ -40,7 +40,7 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
 
 ## Ice-rafted debris in the Pliocene
 
-GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents (a description of GDD output was written by @SimonGoring and can be found at http://www.goring.org/empty-spaces/empty-spaces.html). Our goal is to mine papers that contain ice-rafted debris (IRD) data over the Pliocene, determine whether those publications contain actual IRD data and locations, mine the coordinates, and plot the global distribution of IRD events over the last 5.3 million years (and perhaps their source material). This will be important for understanding X, Y, and Z.   
+GeoDeepDive (GDD) mines publications using OCR (optical character recognition) and then applies several Natural Language Processing (NLP) utilities to the documents (a description of GDD output was written by @SimonGoring and can be found at http://www.goring.org/empty-spaces/empty-spaces.html). Our goal is to mine papers that contain ice-rafted debris (IRD) data over the Pliocene, determine whether those publications contain actual IRD data and locations, mine the coordinates, and plot the global distribution of IRD events over the last 5.3 million years (and perhaps their source material).   
 
 To begin, we want to load the packages we will be using, and then import the data:
 
@@ -81,7 +81,7 @@ short_table[nchar(short_table[,1])>40,1] <-
 short_table %>% datatable()
 ```
 
-We're interested in trying to use GDD to obtain site coordinates for sites that contain IRD data over the last 5 million years.  This would help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
+We're interested in trying to use GDD to obtain site coordinates for sites that contain IRD data over the last 5 million years.  This would help researchers searching find relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
 
 
 ## Getting Coordinates
@@ -237,8 +237,7 @@ leaflet(coordinates_df) %>%
                                   '</small>'))
 
 ```
-
-So here are the sites that we pull out from GeoDeepDive. We find 58 papers with coordinates out of 150 documents in the IRDDive test dump. It should be obvious here that there are clear limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data and chop the Intro and Discussion? To help, we could also string search words around coordinates to determine what type of data the paper is referring to and drop it from the final list if it does not match contain a reference to IRD. 
+So here are the sites that we pull out from GeoDeepDive. We find 19 papers and 58 coordinate pairs for cores out of 150 documents in the IRDDive test dump. It should be obvious here that there are clear limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data and chop the Intro and Discussion? To help, we could also string search words around coordinates to determine what type of data the paper is referring to and drop it from the final list if it does not match contain a reference to IRD. 
 
 ## Next Steps
 
