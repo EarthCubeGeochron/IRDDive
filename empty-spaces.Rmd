@@ -230,7 +230,7 @@ coordinates_df <- coordinates %>% bind_rows %>%
 leaflet(coordinates_df) %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
   addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
-                                  '<a href=http://dx.doi.org/',
+                                  '<a href=https://doi.org/',
                                   coordinates_df$title,'>Publication Link</a><br>',
                                   '<b>Sentence:</b><br>',
                                   '<small>',gsub(',', ' ', coordinates_df$sentence),
