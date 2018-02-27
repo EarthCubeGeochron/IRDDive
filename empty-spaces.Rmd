@@ -1,0 +1,249 @@
+---
+title: "Finding Ice-Rafted Debris Site Locations over the Pliocene with GeoDeepDive"
+author: "Jeremiah Marsicek and Simon Goring"
+output:
+  html_document:
+    code_folding: show
+    highlight: pygment
+    keep_md: yes
+    number_sections: no
+  pdf_document:
+    latex_engine: xelatex
+always_allow_html: yes
+---
+
+
+<style>
+      @import url('https://fonts.googleapis.com/css?family=Roboto:400,700');
+      @import url('https://fonts.googleapis.com/css?family=Droid+Serif');
+      body {
+        font-family: 'Droid Serif', serif;
+      }
+      h1 {
+        font-family: 'Roboto';
+        font-weight: 500;
+        line-height: 1.1;
+        color: #48ca3b;
+      }
+      h2 {
+        font-family: 'Roboto';
+        font-weight: 300;
+        line-height: 1;
+        color: #48ca3b;
+      }
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+```
+
+## Ice-rafted debris in the Pliocene
+
+GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents (a description of GDD output was written by @SimonGoring and can be found at http://www.goring.org/empty-spaces/empty-spaces.html). Our goal is to mine papers that contain ice-rafted debris (IRD) data over the Pliocene, determine whether those publications contain actual IRD data and locations, mine the coordinates, and plot the global distribution of IRD events over the last 5.3 million years (and perhaps their source material). This will be important for understanding X, Y, and Z.   
+
+To begin, we want to load the packages we will be using, and then import the data:
+
+```{r load_data, message=FALSE, warning = FALSE}
+library(jsonlite)
+library(readr)
+library(dplyr)
+library(stringr)
+library(leaflet)
+library(purrr)
+library(DT)
+
+publications <- fromJSON('input/bibjson', flatten = TRUE)
+nlp <- readr::read_tsv('input/sentences_nlp352', 
+                       trim_ws = TRUE, 
+                       col_names = c('_gddid', 'sentence', 'wordIndex', 
+                                     'word', 'partofspeech', 'specialclass', 
+                                     'wordsAgain', 'wordtype', 'wordmodified'))
+
+```
+
+From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing:
+
+```{r warning=FALSE, echo = FALSE}
+
+short_table <- nlp  %>% 
+  filter(1:nrow(nlp) %in% 1) %>%
+  str_replace('-LRB-', '(') %>% 
+  str_replace('-RRB-', ')') %>% 
+  as.data.frame(stringsAsFactors = FALSE)
+
+rownames(short_table) <- colnames(nlp)
+colnames(short_table) <- 'value'
+
+short_table[nchar(short_table[,1])>40,1] <-
+  paste0(substr(short_table[nchar(short_table[,1])>40, 1], 1, 30), ' . . .')
+
+short_table %>% datatable()
+```
+
+We're interested in trying to use GDD to obtain site coordinates for sites that contain IRD data over the last 5 million years.  This would help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
+
+
+## Getting Coordinates
+
+To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
+
+| Coordinates |
+| ----------- |
+| 45°56' W    |
+| 45°56'N     |
+| 45◦56 W     |
+| 45◦56'N     |
+| -45°56'     |
+| 123.5° E    |
+| -123°23'12" |
+
+From this we can compose two regular expressions.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
+
+```{r}
+dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
+ dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
+```
+
+These regular expressions allow for negative or positive coordinate systems, that may start with a `1`, and then are followed by one or two digits (`{1,2}`).  From there we see differences in the structure, reflecting the need to capture the degree symbols, or, in the case of decimal degrees, the decimal component of the coordinates.  We are more rigorous here for the decimal degrees because there are too many other options when there are only decimal numbers.
+
+The regex commands were constructed using capture (and non-capture) groups to work with the `stringr` package, so that we obtain five elements from any match.  The full match, the degrees, the minutes and the seconds (which may be an empty string).  It also returns the quadrant (NESW).
+
+```{r}
+degmin <- str_match_all(nlp$word, dms_regex)
+decdeg <- str_match_all(nlp$word, dd_regex)
+```
+
+Since the documents are broken up into sentences we should expect that all coordinates are reported as pairs, and so we might be most interested in finding all the records that show up with pairs of coordinates.  Let's start by matching up the publications with sentences that have coordinate pairs:
+
+```{r, echo = FALSE}
+
+coord_pairs <- sapply(degmin, function(x)length(x) %% 2 == 0 & length(x) > 0) |
+  sapply(decdeg, function(x)length(x) %% 2 == 0 & length(x) > 0)
+
+things <- nlp %>% 
+  filter(coord_pairs) %>% 
+  inner_join(publications, by = "_gddid") %>% 
+  select(`_gddid`, word, year, title) %>% 
+  mutate(word = gsub(',', ' ', word)) %>% 
+  mutate(word = str_replace_all(word, '-LRB-', '(')) %>% 
+  mutate(word = str_replace_all(word, '-RRB-', ')')) %>% 
+  mutate(word = str_replace_all(word, '" "', ','))
+
+things %>% select(-`_gddid`) %>% datatable
+
+```
+
+So even here, we can see that many of these matches work, but that some of the matches are incomplete.  There appears to be a much lower proportion of sites returned than we might otherwise expect.  Given that there are `r length(unique(nlp$"_gddid"))` articles in the NLP dataset, it's surprising that only `r length(unique(things$"_gddid"))` appear to support regex matches to coordinate pairs.
+
+In reality, this is likely to be, in part, an issue with the OCR/regex processing. We need to go over the potential matches more thoroughly to find all the alternative methods of indicating the coordinate systems before we can commit to a full analysis.
+
+## Converting Coordinates
+
+So, given the coordinate strings, we need to be able to transform them to reliable lat/long pairs with sufficient trust to actually map the records.  These two functions will convert the GeoDeepDive (GDD) word elements pulled out by the regular expression searches into decimal degrees that can account for reported locations.
+
+```{r}
+
+convert_dec <- function(x, i) {
+
+  drop_comma <- gsub(',', '', x) %>% 
+    substr(., c(1,1), nchar(.) - 1) %>% 
+    as.numeric %>% 
+    unlist
+
+  domain <- (str_detect(x, 'N') * 1 +
+    str_detect(x, 'E') * 1 +
+    str_detect(x, 'W') * -1 +
+    str_detect(x, 'S') * -1) *
+    drop_comma
+
+  publ <- match(nlp$`_gddid`[i], publications$`_gddid`)
+  
+  point_pairs <- data.frame(sentence = nlp$word[i],
+                            lat = domain[str_detect(x, 'N') | str_detect(x, 'S')],
+                            lng = domain[str_detect(x, 'E') | str_detect(x, 'W')],
+                            publications[publ,],
+                            stringsAsFactors = FALSE)
+  
+  return(point_pairs)  
+}
+
+convert_dm <- function(x, i) {
+
+  # We use the `i` index so that we can keep the coordinate outputs from the 
+  #  regex in a smaller list.
+  dms <- data.frame(deg = as.numeric(x[,2]), 
+                    min = as.numeric(x[,3]) / 60,
+                    sec = as.numeric(x[,4]) / 60 ^ 2, 
+                    stringsAsFactors = FALSE)
+  
+  dms <- rowSums(dms, na.rm = TRUE)
+
+  domain <- (str_detect(x[,5], 'N') * 1 +
+    str_detect(x[,5], 'E') * 1 +
+    str_detect(x[,5], 'W') * -1 +
+    str_detect(x[,5], 'S') * -1) *
+    dms
+  
+  publ <- match(nlp$`_gddid`[i], publications$`_gddid`)
+  
+  point_pairs <- data.frame(sentence = nlp$word[i],
+                            lat = domain[x[,5] %in% c('N', 'S')],
+                            lng = domain[x[,5] %in% c('E', 'W')],
+                            publications[publ,],
+                            stringsAsFactors = FALSE)
+  
+  return(point_pairs)  
+}
+
+```
+
+Then, once we've done that, we need to apply those functions to the set of records we've pulled to build a composite table:
+
+```{r}
+coordinates <- list()
+coord_idx <- 1
+
+for(i in 1:length(decdeg)) {
+  if((length(decdeg[[i]]) %% 2 == 0 | 
+      length(degmin[[i]]) %% 2 == 0) & length(degmin[[i]]) > 0) {
+    
+    if(any(str_detect(decdeg[[i]], '[NS]')) & 
+       sum(str_detect(decdeg[[i]], '[EW]')) == sum(str_detect(decdeg[[i]], '[NS]'))) {
+      coordinates[[coord_idx]] <- convert_dec(decdeg[[i]], i)
+      coord_idx <- coord_idx + 1
+    }
+    if(any(str_detect(degmin[[i]], '[NS]')) & 
+       sum(str_detect(degmin[[i]], '[EW]')) == sum(str_detect(degmin[[i]], '[NS]'))) {
+      coordinates[[coord_idx]] <- convert_dm(degmin[[i]], i)
+      coord_idx <- coord_idx + 1
+    }
+  }
+}
+
+coordinates_df <- coordinates %>% bind_rows %>% 
+  mutate(sentence = gsub(',', ' ', sentence)) %>% 
+  mutate(sentence = str_replace_all(sentence, '-LRB-', '(')) %>% 
+  mutate(sentence = str_replace_all(sentence, '-RRB-', ')')) %>% 
+  mutate(sentence = str_replace_all(sentence, '" "', ','))
+
+leaflet(coordinates_df) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
+                                  '<a href=http://dx.doi.org/',
+                                  coordinates_df$title,'>Publication Link</a><br>',
+                                  '<b>Sentence:</b><br>',
+                                  '<small>',gsub(',', ' ', coordinates_df$sentence),
+                                  '</small>'))
+
+```
+
+So here are the sites that we pull out from GeoDeepDive. We find 58 papers with coordinates out of 150 documents in the IRDDive test dump. It should be obvious here that there are clear limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data and chop the Intro and Discussion? To help, we could also string search words around coordinates to determine what type of data the paper is referring to and drop it from the final list if it does not match contain a reference to IRD. 
+
+## Next Steps
+
+Next steps include a visual inspection of the papers. We need to know if the paper contains IRD data and we are extracting the coordinates. In papers where it is found, where is it found and are the useful cues around it to help in a search of the documents (e.g., it's always mentioned in the Methods)? In papers where it is not found, why did it return that paper (i.e., why are the current methods missing it)? Perhaps the paper mentions IRD but contains large tables or there are pairs of coordinates that represent E-W, N-S bounds. Doing these things will help us find the papers that contain IRD core data with coordinate pairs and help to eliminate papers that do not.  
+
+```{r}
+
+```
