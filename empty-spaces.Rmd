@@ -243,3 +243,7 @@ So here are the sites that we pull out from GeoDeepDive. We find 58 papers with 
 ## Next Steps
 
 Next steps include a visual inspection of the papers. We need to know if the paper contains IRD data and we are extracting the coordinates. In papers where it is found, where is it found and are the useful cues around it to help in a search of the documents (e.g., it's always mentioned in the Methods)? In papers where it is not found, why did it return that paper (i.e., why are the current methods missing it)? Perhaps the paper mentions IRD but contains large tables or there are pairs of coordinates that represent E-W, N-S bounds. Doing these things will help us find the papers that contain IRD core data with coordinate pairs and help to eliminate papers that do not.  
+
+```{r}
+
+```
