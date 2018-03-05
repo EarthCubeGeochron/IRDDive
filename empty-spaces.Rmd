@@ -53,9 +53,9 @@ library(leaflet)
 library(purrr)
 library(DT)
 
-publications <- fromJSON('input/bibjson', flatten = TRUE)
+publications <- fromJSON(txt = 'input/bibjson', flatten = TRUE)
 nlp <- readr::read_tsv('input/sentences_nlp352', 
-                       trim_ws = TRUE, 
+                       trim_ws = TRUE,
                        col_names = c('_gddid', 'sentence', 'wordIndex', 
                                      'word', 'partofspeech', 'specialclass', 
                                      'wordsAgain', 'wordtype', 'wordmodified'))
@@ -230,7 +230,7 @@ coordinates_df <- coordinates %>% bind_rows %>%
 leaflet(coordinates_df) %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
   addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
-                                  '<a href=http://dx.doi.org/',
+                                  '<a href=https://doi.org/',
                                   coordinates_df$title,'>Publication Link</a><br>',
                                   '<b>Sentence:</b><br>',
                                   '<small>',gsub(',', ' ', coordinates_df$sentence),
