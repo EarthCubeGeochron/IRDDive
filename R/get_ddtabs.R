@@ -2,7 +2,11 @@
 #' @description Given a set of column headings in a document find the text strings that contain each column.
 #' @param sentence A character string from the NLP \code{sentence} field that likely contains a table.
 #' @param colheaders sdfs
-
+#sentence<- readr::read_tsv('input/sentences_nlp352', 
+                            # trim_ws = TRUE,
+                            # col_names = c('_gddid', 'sentence', 'wordIndex', 
+                                  #         'word', 'partofspeech', 'specialclass', 
+                                  #         'wordsAgain', 'wordtype', 'wordmodified'))
 
 get_ddtabs <- function(sentence, colheaders) {
   # I think we need to figure out the locations of the column headers, 
