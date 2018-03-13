@@ -3,6 +3,8 @@
 #' @param sentence A character string from the NLP \code{sentence} field that likely contains a table.
 #' @param colheaders sdfs
 
+rise <- nlp %>% filter(`_gddid` == "54b43279e138239d868524dc")
+rise <- rise[which(regexpr('Core,inventory', rise$word) > 0),]
 
 get_ddtabs <- function(sentence, colheaders) {
   # I think we need to figure out the locations of the column headers, 
