@@ -12,13 +12,17 @@ clean_corpus <- function(x) {
   # Where IRD is only in the references:
   # Find IRD sentence by gddid, and find 'Reference' (or whatever) sentence.
   # If all IRD sentences are at a higher index then references, then FALSE
+  # Or do we remove everything after the references?
   
   refs <- stringr::str_detect(x$word, "References")
+  
   gd_sent <- data.frame(index = which(refs|ird_bird),
                         gddid = x$`_gddid`[refs|ird_bird],
                         sent  = x$sentence[refs|ird_bird],
                         ref   = refs[refs|ird_bird],
                         bird = ird_bird[refs|ird_bird])
+  
+  # gddid & (sent < ref_sent)
   
   # So, for each unique gddid, keep it if the ref sent is greater than all the bird sent?
   
