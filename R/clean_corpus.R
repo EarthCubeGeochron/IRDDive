@@ -18,9 +18,32 @@ clean_corpus <- function(x) {
   
   gd_sent <- data.frame(index = which(refs|ird_bird),
                         gddid = x$`_gddid`[refs|ird_bird],
-                        sent  = x$sentence[refs|ird_bird],
-                        ref   = refs[refs|ird_bird],
-                        bird = ird_bird[refs|ird_bird])
+                         sent = x$sentence[refs|ird_bird],
+                          ref = refs[refs|ird_bird],
+                         bird = ird_bird[refs|ird_bird],
+                      drop_gd = NA,
+                      stringsAsFactors = FALSE)
+  
+  # Go through each paper in the table:
+  for(i in unique(gd_sent$gddid)) {
+
+    if(any(gd_sent$gddid == i & gd_sent$ref == TRUE)){
+      # This needs to be tested!
+      ref_sent <- min(gd_sent$sent[gd_sent$gddid == i & gd_sent$ref == TRUE])
+      
+      nogood <- all(gd_sent$sent[gd_sent$gddid == i & gd_sent$bird == TRUE] >= ref_sent)
+      
+      if(nogood) {
+        gd_sent$drop_gd[gd_sent$gddid == i] <- TRUE
+      } else {
+        gd_sent$drop_gd[gd_sent$gddid == i] <- FALSE
+      }
+    } else {
+      gd_sent$drop_gd[gd_sent$gddid == i] <- FALSE
+    }
+  }
+  
+  reference_drops <- x$`_gddid` %in% unique(gd_sent$gddid[gd_sent$drop_gd])
   
   # gddid & (sent < ref_sent)
   
