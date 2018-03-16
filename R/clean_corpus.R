@@ -54,6 +54,6 @@ clean_corpus <- function(x) {
   
   gddid_all <- unique(x$`_gddid`[good_gddid])
   
-  return(x[x$`_gddid` %in% gddid_all])
+  return(x[x$`_gddid` %in% gddid_all,])
   
 }
