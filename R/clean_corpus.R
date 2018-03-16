@@ -1,4 +1,11 @@
-clean_corpus <- function(x) {
+#' @title Clean GDD Corpus using a set of boolean rules.
+#' @description Uses a set of boolean based rules to clean the corpus of the GeoDeepDive NLP return.
+#' @param x The GeoDeepDive corpus document
+#' @param pubs The publications, linked using the \code{_gddid} field.
+#' @return A \code{list} object with three elements, a pared nlp data.frame, the cut publications (\code{drop}) and the retained publications (\code{keep}).
+#' @export
+
+clean_corpus <- function(x, pubs) {
 
   ird_bird <- stringr::str_detect(x$word, "IRD")
   
@@ -50,10 +57,11 @@ clean_corpus <- function(x) {
   # So, for each unique gddid, keep it if the ref sent is greater than all the bird sent?
   
   # Put together all the booleans now:
-  good_gddid <- which(ird_bird & (ird_word | ird_ice) & !france)
+  good_gddid <- which(ird_bird & (ird_word | ird_ice) & !france & !reference_drops)
   
   gddid_all <- unique(x$`_gddid`[good_gddid])
   
-  return(x[x$`_gddid` %in% gddid_all,])
-
+  return(list(nlp = x[x$`_gddid` %in% gddid_all,],
+              drop = pubs[!pubs$`_gddid` %in% gddid_all, ],
+              keep = pubs[pubs$`_gddid` %in% gddid_all, ]))
 }

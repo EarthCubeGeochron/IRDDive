@@ -60,7 +60,7 @@ full_nlp <- readr::read_tsv('input/sentences_nlp352',
                                      'word', 'partofspeech', 'specialclass', 
                                      'wordsAgain', 'wordtype', 'wordmodified'))
 
-nlp <- clean_corpus(full_nlp)
+nlp <- clean_corpus(full_nlp, publications)
 
 ```
 
