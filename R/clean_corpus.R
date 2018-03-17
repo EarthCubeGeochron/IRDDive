@@ -4,9 +4,24 @@
 #' @param pubs The publications, linked using the \code{_gddid} field.
 #' @return A \code{list} object with three elements, a pared nlp data.frame, the cut publications (\code{drop}) and the retained publications (\code{keep}).
 #' @export
+#' @import assertthat
 
 clean_corpus <- function(x, pubs) {
 
+  ## Assertions:
+  # Expects the deep dive corpus:
+  is_gdd <- assertthat::see_if(x %has_name% '_gddid') & 
+    assertthat::see_if(x %has_name% 'word') & 
+    assertthat::see_if(x %has_name% 'sentence')
+  
+  if(!is_gdd) { stop('The parameter `x` is not a valid GeoDeepDive `data.frame`.') }
+  
+  # Expects the bibliographic information
+  is_pub <- assertthat::see_if(pubs %has_name% '_gddid') & 
+    assertthat::see_if(pubs %has_name% 'title')
+  
+  if(!is_pub) { stop('The parameter `x` is not a valid GeoDeepDive publication `data.frame`.') }
+  
   ird_bird <- stringr::str_detect(x$word, "IRD")
   
   # Ensures (or tries to ensure) that the term IRD is on its own.
