@@ -20,11 +20,13 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
   clean_words <- function(x) {
     gsub("[(${)(}^)]", "", x) %>%                # Curly brakets
       gsub("(,([\\;\\:\\%]),)","\\2 ", .) %>%
-      gsub("(([^\"]),([^\"]))", "\\2 \\3", ., perl = TRUE)  %>% # This nees to be fixed.
+      gsub("(([^\"]),([^\"]))", "\\2 \\3", ., perl = TRUE) %>% 
       gsub(",\",\",", ", ", .) %>%                 # Commas
       gsub(" \\.", "\\.", .) %>% 
       gsub("-LRB-\\s", "\\(", .) %>% 
-      gsub("(,-RRB-)|(\\s-RRB-)", "\\)", .)
+      gsub("(,-RRB-)|(\\s-RRB-)", "\\)", .) %>% 
+      gsub("(,-RSB-)|(\\s-RSB-)", "\\]", .) %>% 
+      gsub("-LSB-\\s", "\\[", .)
   }
   
   # gddid and sentences were passed in:
@@ -55,7 +57,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     assertthat::assert_that(all(x == short_pub$gddid),
                             msg = "There is a mismatch between publication and selected gddids.")
     
-    output <- data.frame(short_pub)
+    output <- data.frame(short_pub) %>% distinct(.keep_all = TRUE)
   }
   
   if(is.data.frame(x) & !is.null(pubs) & is.null(words) & is.null(corpus)) {
@@ -83,7 +85,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
                              short_pub$gddid, '" href = "',
                              short_pub$gddid,'">',
                              substr(short_pub$gddid, 1, 2), '...', substr(short_pub$gddid, 20, 24),
-                             '</span></small>')
+                             '</a></small>')
     
     output <- data.frame(short_pub)
   }
