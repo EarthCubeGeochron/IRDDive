@@ -2,7 +2,7 @@
 #' @description Uses a set of boolean based rules to clean the corpus of the GeoDeepDive NLP return.
 #' @param x The GeoDeepDive corpus document
 #' @param pubs The publications, linked using the \code{_gddid} field.
-#' @return A \code{list} object with three elements, a pared nlp data.frame, the cut publications (\code{drop}) and the retained publications (\code{keep}).
+#' @return A \code{list} object with two elements, a pared nlp \code{data.frame} and information about the \code{data.frame}, the cut publications (\code{drop}) and the retained publications (\code{keep}).
 #' @export
 #' @import assertthat
 
@@ -10,9 +10,9 @@ clean_corpus <- function(x, pubs) {
 
   ## Assertions:
   # Expects the deep dive corpus:
-  is_gdd <- assertthat::see_if(x %has_name% '_gddid') & 
-    assertthat::see_if(x %has_name% 'word') & 
-    assertthat::see_if(x %has_name% 'sentence')
+  is_gdd <- assertthat::assert_that(x %has_name% '_gddid') & 
+    assertthat::assert_that(x %has_name% 'word') & 
+    assertthat::assert_that(x %has_name% 'sentence')
   
   if(!is_gdd) { stop('The parameter `x` is not a valid GeoDeepDive `data.frame`.') }
   
@@ -77,6 +77,6 @@ clean_corpus <- function(x, pubs) {
   gddid_all <- unique(x$`_gddid`[good_gddid])
   
   return(list(nlp = x[x$`_gddid` %in% gddid_all,],
-              drop = pubs[!pubs$`_gddid` %in% gddid_all, ],
-              keep = pubs[pubs$`_gddid` %in% gddid_all, ]))
+          gddlist = list(drop = pubs$`_gddid`[!pubs$`_gddid` %in% gddid_all],
+                              keep = pubs$`_gddid`[pubs$`_gddid` %in% gddid_all])))
 }
