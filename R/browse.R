@@ -11,7 +11,7 @@
 #' }
 #' @export
 
-nlp_summary <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
+browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
   
   # Programming notes:
   # I want to build this so we can pass in a data.frame either formatted as a corpus,
