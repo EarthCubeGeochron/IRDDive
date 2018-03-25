@@ -49,7 +49,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     
     colnames(pubs)[which(colnames(pubs) == "_gddid")] <- "gddid"
     
-    pubs$doi <- paste0('<a href="http://dx.doi.org/', sapply(pubs$identifier, '[[', 'id'), '">DOI</a>')
+    pubs$doi <- paste0('<a href="https://doi.org/', sapply(pubs$identifier, '[[', 'id'), '">DOI</a>')
     
     short_pub <- pubs[match(x, pubs$gddid),] %>% 
       select(gddid, title, year, journal.name, doi)
@@ -74,7 +74,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     
     colnames(pubs)[which(colnames(pubs) == "_gddid")] <- "gddid"
     
-    pubs$doi <- paste0('<a href="http://dx.doi.org/', sapply(pubs$identifier, '[[', 'id'), '">DOI</a>')
+    pubs$doi <- paste0('<a href="https://doi.org/', sapply(pubs$identifier, '[[', 'id'), '">DOI</a>')
     
     short_pub <- dplyr::left_join(x, pubs, by = "gddid") %>% 
       select(gddid, words, title, year, journal.name, doi)
