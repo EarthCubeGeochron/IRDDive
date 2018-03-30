@@ -60,7 +60,7 @@ full_nlp <- readr::read_tsv('input/sentences_nlp352',
                                      'word', 'partofspeech', 'specialclass', 
                                      'wordsAgain', 'wordtype', 'wordmodified'))
 
-nlp.clean <- clean_corpus(full_nlp, publications)
+nlp.clean <- clean_corpus(full_nlp, publications) #uses the clean_corpus.R function
 
 nlp<-nlp.clean$nlp
 
@@ -242,12 +242,43 @@ leaflet(coordinates_df) %>%
 
 ```
 
-So here are the sites that we pull out from GeoDeepDive. We find 58 papers with coordinates out of 150 documents in the IRDDive test dump. It should be obvious here that there are clear limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data and chop the Intro and Discussion? To help, we could also string search words around coordinates to determine what type of data the paper is referring to and drop it from the final list if it does not match contain a reference to IRD. 
+After cleaning the corpus, here are the sites that we pull out from GeoDeepDive. We find 13 papers with 46 coordinate pairs out of 150 documents in the IRDDive test dump. We still have limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data. Additionally, some papers mention IRD in the core data for continental cores (see Central Asia location). Perhaps by stripping documents that mention 'continental (place name)' we can clean this further. One last step is to to obtain documents that mention IRD, but as 'IRD-rich layers' by using a regex. Once these last few issues are sorted out, we can begin to pull dates and provenance information from the documents.  
 
-## Next Steps
+## Pulling ages and age ranges
 
-Next steps include a visual inspection of the papers. We need to know if the paper contains IRD data and we are extracting the coordinates. In papers where it is found, where is it found and are the useful cues around it to help in a search of the documents (e.g., it's always mentioned in the Methods)? In papers where it is not found, why did it return that paper (i.e., why are the current methods missing it)? Perhaps the paper mentions IRD but contains large tables or there are pairs of coordinates that represent E-W, N-S bounds. Doing these things will help us find the papers that contain IRD core data with coordinate pairs and help to eliminate papers that do not.  
+One of the next steps once the corpus of doucments is cleaned and coordinates obtained and cross-referenced to a database of ODP cores is pull ages and age ranges associated with IRD events. This will require building regex's that pull dates with many different naming conventions. For example, we will need to consider: 
+
+| Age reference |
+| -----------   |
+| years BP      |
+| kyr BP        |
+| ka BP         |
+| a BP          |
+| etc.          |
+|               |
+|               |
+
+For this, we can use the browse.R function to look for the different naming conventions and then start pulling ages and age ranges associated with them. 
 
 ```{r}
+date <- str_detect(full_nlp$word, "BP")
 
+browse(x = data.frame(gddid = x$`_gddid`[date_range], 
+                      words = x$word[date_range]), 
+       pubs = publications)
+
+x$word[date&ird_word][4]
+
+date_range <- str_detect(full_nlp$word, 
+                         "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
+
+date_match <- str_match(full_nlp$word, 
+                         "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>% na.omit()
+
+browse(x = data.frame(gddid = x$`_gddid`[ird_word&!france], 
+                      words = x$word[ird_word&!france]), 
+       pubs = publications)
+
+number <- str_detect(full_nlp$word, 
+                         ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr,")
 ```
