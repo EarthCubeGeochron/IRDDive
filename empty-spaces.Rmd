@@ -60,11 +60,13 @@ full_nlp <- readr::read_tsv('input/sentences_nlp352',
                                      'word', 'partofspeech', 'specialclass', 
                                      'wordsAgain', 'wordtype', 'wordmodified'))
 
-nlp <- clean_corpus(full_nlp, publications)
+nlp.clean <- clean_corpus(full_nlp, publications)
+
+nlp<-nlp.clean$nlp
 
 ```
 
-From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing:
+From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing. We also get a list of gddids to keep or drop given the regular expressions we used to find instances of IRD in the affiliations or references sections of the papers. This leaves us with 83 documents:
 
 ```{r warning=FALSE, echo = FALSE}
 

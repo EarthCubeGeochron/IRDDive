@@ -80,3 +80,5 @@ clean_corpus <- function(x, pubs) {
           gddlist = list(drop = pubs$`_gddid`[!pubs$`_gddid` %in% gddid_all],
                               keep = pubs$`_gddid`[pubs$`_gddid` %in% gddid_all])))
 }
+
+#compiles a list of cleaned up gddids, as well as the list of gddids it drops
