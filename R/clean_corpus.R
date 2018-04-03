@@ -29,9 +29,9 @@ clean_corpus <- function(x, pubs) {
   ird_word <- stringr::str_detect(x$word, "[,\\{/]IRD[,-/]")
   
   # Removes by French address line
-  france <- stringr::str_detect(x$word, "([Cc]edex.*[Ff]rance)|(CNRS)")
-  continental <- stringr::str_detect(x$word, "(Asia)|(continental)")
+  france <- stringr::str_detect(x$word, "([Cc]edex.*[Ff]rance)|(CNRS)|(www\\.ird\\.nc)")
   
+  # continental <- stringr::str_detect(x$word, "(Asia)|(continental)")
   
   # Where IRD is only in the references:
   # Find IRD sentence by gddid, and find 'Reference' (or whatever) sentence.
@@ -74,7 +74,8 @@ clean_corpus <- function(x, pubs) {
   # So, for each unique gddid, keep it if the ref sent is greater than all the bird sent?
   
   # Put together all the booleans now:
-  good_gddid <- which(ird_bird & (ird_word | ird_ice) & !france & !reference_drops & !continental)
+  good_gddid <- which(ird_bird & ((ird_word | ird_ice) & !france) & !reference_drops)
+  
   gddid_all <- unique(x$`_gddid`[good_gddid])
   
   return(list(nlp = x[x$`_gddid` %in% gddid_all,],
