@@ -68,8 +68,8 @@ From this we get an output object that includes a key for the publication (`_gdd
 
 ```{r warning=FALSE, echo = FALSE}
 
-short_table <- nlp  %>% 
-  filter(1:nrow(nlp) %in% 1) %>%
+short_table <- nlp[[1]]  %>% 
+  filter(1:nrow(nlp[[1]]) %in% 1) %>%
   str_replace('-LRB-', '(') %>% 
   str_replace('-RRB-', ')') %>% 
   as.data.frame(stringsAsFactors = FALSE)
