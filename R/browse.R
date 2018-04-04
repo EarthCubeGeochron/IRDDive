@@ -6,8 +6,10 @@
 #' @param pubs The bibliographic information for the GDD dataset.
 #' @importFrom dplyr left_join
 #' @example \dontrun{
-#' subset <- sample(nrow(full_nlp), 100)
-#' nlp_summary(gddid = nlp$`_gddid`[subset], words = nlp$word[subset])
+#' subset <- sample(nrow(nlp), 100)
+#' browse(x = nlp$`_gddid`[subset], 
+#'        pubs = publications,
+#'        words = nlp$word[subset])
 #' }
 #' @export
 
@@ -65,7 +67,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     assertthat::assert_that(any(c('gddid', '_gddid') %in% colnames(x)),
                  msg = "There must be a column either `gddid` or `_gddid` in `x` if `x` is a `data.frame`")
     
-    assertthat::assert_that('words' %in% colnames(x),
+    assertthat::assert_that('word' %in% colnames(x),
                             msg = "There must be a column `words` in `x` if `x` is a `data.frame`")
 
     if ('_gddid' %in% colnames(x)) {
@@ -77,9 +79,9 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     pubs$doi <- paste0('<a href="http://dx.doi.org/', sapply(pubs$identifier, '[[', 'id'), '">DOI</a>')
     
     short_pub <- dplyr::left_join(x, pubs, by = "gddid") %>% 
-      select(gddid, words, title, year, journal.name, doi)
+      select(gddid, word, title, year, journal.name, doi)
     
-    short_pub$words <- clean_words(short_pub$words)
+    short_pub$words <- clean_words(short_pub$word)
     
     short_pub$gddid = paste0('<small><a title ="', 
                              short_pub$gddid, '" href = "',
@@ -90,5 +92,11 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     output <- data.frame(short_pub)
   }
   
-  return(DT::datatable(output, escape = FALSE, rownames = FALSE))
+  out_table <- DT::datatable(output, escape = FALSE, rownames = FALSE) %>% 
+    DT::formatStyle(columns = 'word',
+      `word-wrap` = 'break-word',
+                    `word-break` = 'break-all',
+                    `white-space` = 'normal')
+  
+  return(out_table)
 }
