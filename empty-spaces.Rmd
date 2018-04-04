@@ -284,12 +284,13 @@ number <- str_detect(full_nlp$word,
 ```
 ##Output from pulling and cleaning dates using regex:
 
-     [,1]                 [,2]  [,3] [,4]  [,5]    
-[1,] "76,to,62,kyr,BP,"   "76"  "to" "62"  "kyr,BP"
-[2,] "6,--,6.4,kyr,BP,"   "6"   "--" "6.4" "kyr,BP"
-[3,] "6,to,3,kyr,BP,"     "6"   "to" "3"   "kyr,BP"
-[4,] "11,--,10,kyr,BP,"   "11"  "--" "10"  "kyr,BP"
-[5,] "6.0,--,6.7,kyr,BP," "6.0" "--" "6.7" "kyr,BP"
-[6,] "11,--,10,kyr,BP,"   "11"  "--" "10"  "kyr,BP"
+| Age range           | | Age captures     | | Date Label  | 
+| -----------         | | -----------      | | ----------- | 
+| "76,to,62,kyr,BP,"  | | "76"  "to" "62"  | | "kyr,BP"    |
+| "6,--,6.4,kyr,BP,"  | | "6"   "--" "6.4" | | "kyr,BP"    |
+| "6,to,3,kyr,BP,"    | | "6"   "to" "3"   | | "kyr,BP"    |
+| "11,--,10,kyr,BP,"  | | "11"  "--" "10"  | | "kyr,BP"    |
+| "6.0,--,6.7,kyr,BP,"| | "6.0" "--" "6.7" | | "kyr,BP"    |
+
 
 We are successfully identifying instances of dates in the papers where there are references to IRD. Now we need to match the dates to specific units, etc. 
