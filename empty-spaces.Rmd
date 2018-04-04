@@ -67,10 +67,9 @@ full_nlp <- readr::read_tsv('input/sentences_nlp352',
 nlp_clean <- clean_corpus(x = full_nlp, pubs = publications) #uses the clean_corpus.R function
 
 nlp <- nlp_clean$nlp
-
 ```
 
-From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing. We also get a list of gddids to keep or drop given the regular expressions we used to find instances of IRD in the affiliations or references sections of the papers. This leaves us with 83 documents:
+From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing. We also get a list of gddids to keep or drop given the regular expressions we used to find instances of IRD in the affiliations or references sections of the papers. This leaves us with 82 documents:
 
 ```{r warning=FALSE, echo = FALSE}
 
@@ -248,7 +247,7 @@ leaflet(coordinates_df) %>%
 
 ```
 
-After cleaning the corpus, here are the sites that we pull out from GeoDeepDive. We find 13 papers with 46 coordinate pairs out of 150 documents in the IRDDive test dump. We still have limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data. Additionally, some papers mention IRD in the core data for continental cores (see Central Asia location). Perhaps by stripping documents that mention 'continental (place name)' we can clean this further. One last step is to to obtain documents that mention IRD, but as 'IRD-rich layers' by using a regex. Once these last few issues are sorted out, we can begin to pull dates and provenance information from the documents.  
+After cleaning the corpus, here are the sites that we pull out from GeoDeepDive. We find 12 papers with 31 coordinate pairs out of 150 documents in the IRDDive test dump. We still have limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data. While we are finding papers with IRD and core data, we are finding papers with IRD and no core data, so it is an important next step to evaluate whether these papers actually contain coordinate information. Additionally, some papers mention IRD in the core data for continental cores (see Central Asia location). Perhaps by stripping documents that mention 'continental (place name)' we can clean this further. Another option is to cross-reference it with polygons of the continents and remove coordinate pairs that fall within the continental boundaries. One last step is to to obtain documents that mention IRD, but as 'IRD-rich layers' by using a regex. Once these last few issues are sorted out, we can begin to pull dates and provenance information from the documents.  
 
 ## Pulling ages and age ranges
 
@@ -268,7 +267,7 @@ For this, we can use the browse.R function to look for the different naming conv
 
 is_date <- str_detect(full_nlp$word, "BP")
 
-x$word[date&ird_word][4]
+x$word[is_date&ird_word][4]
 
 date_range <- str_detect(full_nlp$word, 
                          "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
@@ -283,3 +282,14 @@ browse(x = data.frame(gddid = x$`_gddid`[ird_word&!france],
 number <- str_detect(full_nlp$word, 
                          ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr,")
 ```
+##Output from pulling and cleaning dates using regex:
+
+     [,1]                 [,2]  [,3] [,4]  [,5]    
+[1,] "76,to,62,kyr,BP,"   "76"  "to" "62"  "kyr,BP"
+[2,] "6,--,6.4,kyr,BP,"   "6"   "--" "6.4" "kyr,BP"
+[3,] "6,to,3,kyr,BP,"     "6"   "to" "3"   "kyr,BP"
+[4,] "11,--,10,kyr,BP,"   "11"  "--" "10"  "kyr,BP"
+[5,] "6.0,--,6.7,kyr,BP," "6.0" "--" "6.7" "kyr,BP"
+[6,] "11,--,10,kyr,BP,"   "11"  "--" "10"  "kyr,BP"
+
+We are successfully identifying instances of dates in the papers where there are references to IRD. Now we need to match the dates to specific units, etc. 
