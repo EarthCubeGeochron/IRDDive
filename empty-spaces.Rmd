@@ -67,10 +67,9 @@ full_nlp <- readr::read_tsv('input/sentences_nlp352',
 nlp_clean <- clean_corpus(x = full_nlp, pubs = publications) #uses the clean_corpus.R function
 
 nlp <- nlp_clean$nlp
-
 ```
 
-From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing. We also get a list of gddids to keep or drop given the regular expressions we used to find instances of IRD in the affiliations or references sections of the papers. This leaves us with 83 documents:
+From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing. We also get a list of gddids to keep or drop given the regular expressions we used to find instances of IRD in the affiliations or references sections of the papers. This leaves us with 82 documents:
 
 ```{r warning=FALSE, echo = FALSE}
 
