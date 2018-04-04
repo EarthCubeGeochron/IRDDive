@@ -52,6 +52,10 @@ library(stringr)
 library(leaflet)
 library(purrr)
 library(DT)
+library(assertthat)
+
+sourcing <- list.files('R', full.names = TRUE) %>% 
+  map(source, echo = FALSE, print = FALSE, verbose = FALSE)
 
 publications <- fromJSON(txt = 'input/bibjson', flatten = TRUE)
 full_nlp <- readr::read_tsv('input/sentences_nlp352', 
@@ -60,9 +64,9 @@ full_nlp <- readr::read_tsv('input/sentences_nlp352',
                                      'word', 'partofspeech', 'specialclass', 
                                      'wordsAgain', 'wordtype', 'wordmodified'))
 
-nlp.clean <- clean_corpus(x = full_nlp, pubs = publications) #uses the clean_corpus.R function
+nlp_clean <- clean_corpus(x = full_nlp, pubs = publications) #uses the clean_corpus.R function
 
-nlp<-nlp.clean$nlp
+nlp <- nlp_clean$nlp
 
 ```
 
@@ -70,13 +74,13 @@ From this we get an output object that includes a key for the publication (`_gdd
 
 ```{r warning=FALSE, echo = FALSE}
 
-short_table <- nlp[[1]]  %>% 
-  filter(1:nrow(nlp[[1]]) %in% 1) %>%
+short_table <- nlp  %>% 
+  filter(1:nrow(nlp) %in% 1) %>%
   str_replace('-LRB-', '(') %>% 
   str_replace('-RRB-', ')') %>% 
   as.data.frame(stringsAsFactors = FALSE)
 
-rownames(short_table) <- colnames(nlp)
+rownames(short_table) <- colnames(nlp_clean)
 colnames(short_table) <- 'value'
 
 short_table[nchar(short_table[,1])>40,1] <-
@@ -231,11 +235,13 @@ coordinates_df <- coordinates %>% bind_rows %>%
   mutate(sentence = str_replace_all(sentence, '-RRB-', ')')) %>% 
   mutate(sentence = str_replace_all(sentence, '" "', ','))
 
+coordinates_df$doi <- coordinates_df$identifier %>% map(function(x) x$id) %>% unlist
+
 leaflet(coordinates_df) %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
   addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
                                   '<a href=https://doi.org/',
-                                  coordinates_df$title,'>Publication Link</a><br>',
+                                  coordinates_df$doi,'>Publication Link</a><br>',
                                   '<b>Sentence:</b><br>',
                                   '<small>',gsub(',', ' ', coordinates_df$sentence),
                                   '</small>'))
@@ -255,17 +261,12 @@ One of the next steps once the corpus of doucments is cleaned and coordinates ob
 | ka BP         |
 | a BP          |
 | etc.          |
-|               |
-|               |
 
 For this, we can use the browse.R function to look for the different naming conventions and then start pulling ages and age ranges associated with them. 
 
-```{r}
-date <- str_detect(full_nlp$word, "BP")
+```{r, eval=FALSE}
 
-browse(x = data.frame(gddid = x$`_gddid`[date_range], 
-                      words = x$word[date_range]), 
-       pubs = publications)
+is_date <- str_detect(full_nlp$word, "BP")
 
 x$word[date&ird_word][4]
 
