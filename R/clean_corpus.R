@@ -75,7 +75,7 @@ clean_corpus <- function(x, pubs) {
   
   # Put together all the booleans now:
   #good_gddid <- which(ird_bird & ((ird_word | ird_ice) & !france) & !reference_drops)
-  good_gddid <- which(ird_bird & ((ird_word | ird_ice)) & !france)
+  good_gddid <- which(ird_bird & ((ird_word | ird_ice)) & !france & !reference_drops)
   
   gddid_all <- unique(x$`_gddid`[good_gddid])
   
