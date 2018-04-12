@@ -29,7 +29,7 @@ clean_corpus <- function(x, pubs) {
   ird_word <- stringr::str_detect(x$word, "[,\\{/]IRD[,-/]")
   
   # Removes by French address line
-  france <- stringr::str_detect(x$word, "([Cc]edex.*[Ff]rance)|(CNRS)|(www\\.ird\\.nc)|([Ff]rench\\sIRD)")
+  france <- stringr::str_detect(x$word, "([Cc]edex.*[Ff]rance)|(CNRS)|(www\\.ird\\.nc)|([Ff]rench).*(IRD)")
   
   #similar_words<- stringr::str_detect(x$word, "([Th]ird) | ([Bb]ird)")
   
