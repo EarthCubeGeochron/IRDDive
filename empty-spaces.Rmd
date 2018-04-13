@@ -95,15 +95,19 @@ We're interested in trying to use GDD to obtain site coordinates for sites that 
 
 To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
 
-| Coordinates |
-| ----------- |
-| 45°56' W    |
-| 45°56'N     |
-| 45◦56 W     |
-| 45◦56'N     |
-| -45°56'     |
-| 123.5° E    |
-| -123°23'12" |
+| Coordinates    |
+| -----------    |
+| 45°56' W       |
+| 45°56'N        |
+| 45◦56 W        |
+| 45◦56'N        |
+| -45°56'        |
+| 123.5° E       |
+| -123°23'12"    |
+| 37846VN        |
+| 52.5,°,N       |
+| 37º34,.284,´,N |
+
 
 From this we can compose two regular expressions.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
 
