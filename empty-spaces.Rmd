@@ -106,14 +106,20 @@ To obtain coordinates from the paper we must consider that there are several pot
 | -123°23'12"    |
 | 37846VN        |
 | 52.5,°,N       |
-| 37º34,.284,´,N |
-
+| 37º34,.284,´,N | - two papers where 3 digits after a period
+| 43ø30,`,N      |
+| 66,◦,18.8,S    | - miss first two numbers of it
+| 68,300e69,400N | - gives a range
 
 From this we can compose two regular expressions.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
 
 ```{r}
 dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
+#dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦oºø],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,3}(?:.[0-9]*)),[´′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
+
  dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
+#dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
+
 ```
 
 These regular expressions allow for negative or positive coordinate systems, that may start with a `1`, and then are followed by one or two digits (`{1,2}`).  From there we see differences in the structure, reflecting the need to capture the degree symbols, or, in the case of decimal degrees, the decimal component of the coordinates.  We are more rigorous here for the decimal degrees because there are too many other options when there are only decimal numbers.
