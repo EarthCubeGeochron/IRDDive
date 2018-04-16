@@ -1,12 +1,7 @@
-# A set of extracted coordinates to test regex against.  All are valid from a paper
-45°56' W
-45°56'N
-45◦56 W
-45◦56'N
--45°56' E
--12°23'12" N
-123.5° E
-43ø30`N
-37º34.284´E
-52.5°N
-68,300e69,400N
+"","_gddid","sentence","detected"
+"1","568ee0d4cf58f11e8bd69762",40,TRUE
+"2","568ee0d4cf58f11e8bd69762",194,TRUE
+"3","54b43266e138239d8684f23e",60,TRUE
+"4","56f52aa4cf58f192cccc8de1",43,TRUE
+"5","54ced705e138236bcc92aa12",56,TRUE
+"6","54ced705e138236bcc92aa12",119,TRUE

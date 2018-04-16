@@ -51,7 +51,7 @@ loose_coord <- "(([,-]\\d{1,3}[^a-zA-Z0-9]{1,4}\\d+?.{1,7}){1,4})([NESWnesw]?),"
 
 lmatch <- stringr::str_detect(nlp$word, loose_coord)
 
-browse(lmatch, corpus = nlp, pubs = publications)
+geodiveR::browse(lmatch, corpus = nlp, pubs = publications)
 
 ```
 
