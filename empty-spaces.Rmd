@@ -45,6 +45,9 @@ GeoDeepDive (GDD) mines publications using OCR and then applies several Natural 
 To begin, we want to load the packages we will be using, and then import the data:
 
 ```{r load_data, message=FALSE, warning = FALSE}
+
+devtools::install_github('EarthCubeGeochron/geodiveR')
+
 library(jsonlite)
 library(readr)
 library(dplyr)
