@@ -98,21 +98,31 @@ We're interested in trying to use GDD to obtain site coordinates for sites that 
 
 To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
 
-| Coordinates |
-| ----------- |
-| 45°56' W    |
-| 45°56'N     |
-| 45◦56 W     |
-| 45◦56'N     |
-| -45°56'     |
-| 123.5° E    |
-| -123°23'12" |
+| Coordinates    |
+| -----------    |
+| 45°56' W       |
+| 45°56'N        |
+| 45◦56 W        |
+| 45◦56'N        |
+| -45°56'        |
+| 123.5° E       |
+| -123°23'12"    |
+| 37846VN        |
+| 52.5,°,N       |
+| 37º34,.284,´,N | - two papers where 3 digits after a period
+| 43ø30,`,N      |
+| 66,◦,18.8,S    | - miss first two numbers of it
+| 68,300e69,400N | - gives a range
 
 From this we can compose two regular expressions.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
 
 ```{r}
 dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
+#dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦oºø],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,3}(?:.[0-9]*)),[´′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
+
  dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
+#dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
+
 ```
 
 These regular expressions allow for negative or positive coordinate systems, that may start with a `1`, and then are followed by one or two digits (`{1,2}`).  From there we see differences in the structure, reflecting the need to capture the degree symbols, or, in the case of decimal degrees, the decimal component of the coordinates.  We are more rigorous here for the decimal degrees because there are too many other options when there are only decimal numbers.
@@ -250,7 +260,7 @@ leaflet(coordinates_df) %>%
 
 ```
 
-After cleaning the corpus, here are the sites that we pull out from GeoDeepDive. We find 12 papers with 31 coordinate pairs out of 150 documents in the IRDDive test dump. We still have limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data. While we are finding papers with IRD and core data, we are finding papers with IRD and no core data, so it is an important next step to evaluate whether these papers actually contain coordinate information. Additionally, some papers mention IRD in the core data for continental cores (see Central Asia location). Perhaps by stripping documents that mention 'continental (place name)' we can clean this further. Another option is to cross-reference it with polygons of the continents and remove coordinate pairs that fall within the continental boundaries. One last step is to to obtain documents that mention IRD, but as 'IRD-rich layers' by using a regex. Once these last few issues are sorted out, we can begin to pull dates and provenance information from the documents.  
+After cleaning the corpus, here are the sites that we pull out from GeoDeepDive. We find 11 papers with 30 coordinate pairs out of 150 documents in the IRDDive test dump. We still have limitations to the current methods.  First, it appears we are finding papers where IRD is simply mentioned, and it is not core data. To circumvent this issue, we need to know where in these papers IRD is being referred to. Perhaps we can target certain parts of the paper, like the Methods, to ensure we are getting coordinates for IRD data. While we are finding papers with IRD and core data, we are finding papers with IRD and no core data, so it is an important next step to evaluate whether these papers actually contain coordinate information. Additionally, some papers mention IRD in the core data for continental cores (see Central Asia location). Perhaps by stripping documents that mention 'continental (place name)' we can clean this further. Another option is to cross-reference it with polygons of the continents and remove coordinate pairs that fall within the continental boundaries. One last step is to to obtain documents that mention IRD, but as 'IRD-rich layers' by using a regex. Once these last few issues are sorted out, we can begin to pull dates and provenance information from the documents.  
 
 ## Pulling ages and age ranges
 
@@ -287,12 +297,28 @@ number <- str_detect(full_nlp$word,
 ```
 ##Output from pulling and cleaning dates using regex:
 
-     [,1]                 [,2]  [,3] [,4]  [,5]    
-[1,] "76,to,62,kyr,BP,"   "76"  "to" "62"  "kyr,BP"
-[2,] "6,--,6.4,kyr,BP,"   "6"   "--" "6.4" "kyr,BP"
-[3,] "6,to,3,kyr,BP,"     "6"   "to" "3"   "kyr,BP"
-[4,] "11,--,10,kyr,BP,"   "11"  "--" "10"  "kyr,BP"
-[5,] "6.0,--,6.7,kyr,BP," "6.0" "--" "6.7" "kyr,BP"
-[6,] "11,--,10,kyr,BP,"   "11"  "--" "10"  "kyr,BP"
+| Age ranges             |         
+| -----------            |         
+| "76,to,62,kyr,BP,"     |       
+| "6,--,6.4,kyr,BP,"     |        
+| "6,to,3,kyr,BP,"       |       
+| "11,--,10,kyr,BP,"     |        
+| "6.0,--,6.7,kyr,BP,"   |        
+
+| Age captures     |
+| -----------      |
+| "76"  "to" "62"  | 
+| "6"   "--" "6.4" |
+| "6"   "to" "3"   |
+| "11"  "--" "10"  |
+| "6.0" "--" "6.7" |
+
+| Date Label  |
+| ----------- |
+| "kyr,BP"    |
+| "kyr,BP"    |
+| "kyr,BP"    |
+| "kyr,BP"    |
+| "kyr,BP"    |
 
 We are successfully identifying instances of dates in the papers where there are references to IRD. Now we need to match the dates to specific units, etc. 
