@@ -90,7 +90,18 @@ colnames(short_table) <- 'value'
 short_table[nchar(short_table[,1])>40,1] <-
   paste0(substr(short_table[nchar(short_table[,1])>40, 1], 1, 30), ' . . .')
 
-short_table %>% datatable()
+rownames(short_table) <- colnames(nlp)
+short_table$description <- c("Unique article identifier",
+                             "Unique sentence identifier within article",
+                             "Index of words within sentence",
+                             "Verbatim OCR word",
+                             "Parts of speech, based on <a href='https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html'>Penn State TreeView</a>",
+                             "Special classes (numbers, dates, &cetera)",
+                             "Words again",
+                             "Word types, based on <a href='http://universaldependencies.org/introduction.html'>universal dependencies</a>.",
+                             "The word that the <code>wordtype</code> is modifying.")
+
+short_table %>% datatable(escape = FALSE, rownames = TRUE)
 ```
 
 We're interested in trying to use GDD to obtain site coordinates for sites that contain IRD data over the last 5 million years.  This would help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
@@ -98,19 +109,11 @@ We're interested in trying to use GDD to obtain site coordinates for sites that 
 
 ## Getting Coordinates
 
-To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
+To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like and build a regular expression (or set of regular expressions) to accurately extract these values.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
 
-| Longitudes     |  Latitudes     | Matches |
-| -----------    | -----------    | ------ |
-| 45°56' W       | 45°56'N        |   |
-| 45◦56 W        | 45◦56'N      |   |
-| -45°56' E        | -12°23'12" N |   |
-| 123.5° E       | 43ø30`N      |   |
-|  37º34.284´E |  66◦18.8S    |   |
-| 52.5°N       |  52.5°N        |   |
-| 68,300e69,400N | - gives a range |   |
-
-From this we can compose two regular expressions.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
+```{r, echo = OFF, result = 'hide', message=FALSE}
+tests <- readr::read_delim('data/coord_test.txt', comment = '#', col_names = FALSE, delim = '\t')
+```
 
 ```{r}
 dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
@@ -119,6 +122,13 @@ dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([
  dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
 #dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
 
+```
+
+```{r}
+
+tests$dms <- ifelse(stringr::str_detect(tests, dms_regex))
+
+DT::datatable(tests)
 ```
 
 These regular expressions allow for negative or positive coordinate systems, that may start with a `1`, and then are followed by one or two digits (`{1,2}`).  From there we see differences in the structure, reflecting the need to capture the degree symbols, or, in the case of decimal degrees, the decimal component of the coordinates.  We are more rigorous here for the decimal degrees because there are too many other options when there are only decimal numbers.
