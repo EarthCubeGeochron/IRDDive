@@ -48,6 +48,8 @@ To begin, we want to load the packages we will be using, and then import the dat
 
 devtools::install_github('EarthCubeGeochron/geodiveR')
 
+library(geodiveR)
+
 library(jsonlite)
 library(readr)
 library(dplyr)
@@ -98,21 +100,15 @@ We're interested in trying to use GDD to obtain site coordinates for sites that 
 
 To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like:
 
-| Coordinates    |
-| -----------    |
-| 45°56' W       |
-| 45°56'N        |
-| 45◦56 W        |
-| 45◦56'N        |
-| -45°56'        |
-| 123.5° E       |
-| -123°23'12"    |
-| 37846VN        |
-| 52.5,°,N       |
-| 37º34,.284,´,N | - two papers where 3 digits after a period
-| 43ø30,`,N      |
-| 66,◦,18.8,S    | - miss first two numbers of it
-| 68,300e69,400N | - gives a range
+| Longitudes     |  Latitudes     | Matches |
+| -----------    | -----------    | ------ |
+| 45°56' W       | 45°56'N        |   |
+| 45◦56 W        | 45◦56'N      |   |
+| -45°56' E        | -12°23'12" N |   |
+| 123.5° E       | 43ø30`N      |   |
+|  37º34.284´E |  66◦18.8S    |   |
+| 52.5°N       |  52.5°N        |   |
+| 68,300e69,400N | - gives a range |   |
 
 From this we can compose two regular expressions.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
 
