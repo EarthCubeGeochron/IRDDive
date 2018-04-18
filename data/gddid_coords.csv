@@ -1,15 +1,13 @@
 gddid,sentence,true_false,notes
-54b4324ee138239d8684aefa,36,TRUE,"ODP core, mentions another papers reported IRD date."
 54b43250e138239d8684b26f,74,TRUE,Good
 54b43250e138239d8684b26f,79,TRUE,Good
 54b43266e138239d8684f1fd,8,TRUE,Good
 54b43266e138239d8684f23e,60,TRUE,"Good, need to fix coordinates (appear to be in a Table)"
 55bbc758e1382373b63b8eba,15,TRUE,Good
-55f42c97cf58f16256a222db,40,TRUE,Talk about Heinrich events as they relate to their core data.
-568ee0d4cf58f11e8bd69762,40,TRUE,Talk about Heinrich events as they relate to their core data.
 56f52aa4cf58f192cccc8de1,43,TRUE,Good
 574aa9bccf58f12e61154400,40,TRUE,Good
 57e6454bcf58f17e5ec0644f,124,TRUE,Good
+55f42c97cf58f16256a222db,40,TRUE,We get this paper.
 54b4327ce138239d86852e8c,57,FALSE,Has IRD and coords (coords have a period in them - a fix for the regex)
 54b4327ce138239d86852e8c,58,FALSE,Has IRD and coords (coords have a period in them - a fix for the regex)
 54cd7d0fe138236bcc92a483,31,FALSE,"Have IRD associated w/ H1 and coordinates from two cores in the paper (37Á46_N, 10Á11_W) "
