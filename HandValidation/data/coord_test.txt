@@ -1,0 +1,12 @@
+# A set of extracted coordinates to test regex against.  All are valid from a paper
+45°56' W
+45°56'N
+45◦56 W
+45◦56'N
+-45°56' E
+-12°23'12" N
+123.5° E
+43ø30`N
+37º34.284´E
+52.5°N
+68,300e69,400N
