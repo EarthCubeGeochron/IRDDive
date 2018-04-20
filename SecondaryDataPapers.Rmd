@@ -63,7 +63,7 @@ sec_sent <- data.frame(index = which(disc|ird_word),
 for(i in unique(sec_sent$gddid)) {
   
   if(any(sec_sent$gddid == i & sec_sent$disc == TRUE)){
-    # This needs to be tested!
+  
     disc_sent <- min(sec_sent$sent[sec_sent$gddid == i & sec_sent$disc == TRUE])
     
     nogood <- all(sec_sent$sent[sec_sent$gddid == i & sec_sent$word == TRUE] >= disc_sent)
@@ -89,6 +89,8 @@ return(list(nlp = x[x$`_gddid` %in% gddid_all_disc,],
             gddlist = list(drop = pubs$`_gddid`[!pubs$`_gddid` %in% gddid_all_disc],
                            keep = pubs$`_gddid`[pubs$`_gddid` %in% gddid_all_disc])))
 }
+
+ird_after_disc<-ird_disc(x = nlp_clean$nlp, pubs = publications)
 
 ```
 
