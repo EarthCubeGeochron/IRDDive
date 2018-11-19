@@ -15,7 +15,6 @@ What actually looks like a set of coordinates?  This is a small Rmd to help us l
 
 ```{r load_packages, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 devtools::install_github('EarthCubeGeochron/geodiveR')
-
 library(geodiveR)
 
 library(jsonlite)
