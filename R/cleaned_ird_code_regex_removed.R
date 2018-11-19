@@ -78,6 +78,53 @@ dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
 
 # ages and age ranges
 
+========================================
+{r, eval=FALSE}
+<<<<<<< Updated upstream
+
+is_date <- str_detect(full_nlp$word, "BP")
+
+x$word[is_date&ird_word][4]
+
+date_range <- str_detect(full_nlp$word,
+"(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
+
+date_match <- str_match(full_nlp$word,
+"(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>% na.omit()
+
+browse(x = data.frame(gddid = x$`_gddid`[ird_word&!france],
+words = x$word[ird_word&!france]),
+pubs = publications)
+
+number <- str_detect(full_nlp$word,
+",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr,")
+========================================
+##Output from pulling and cleaning dates using regex:
+
+| Age ranges             |
+| -----------            |
+| "76,to,62,kyr,BP,"     |
+| "6,--,6.4,kyr,BP,"     |
+| "6,to,3,kyr,BP,"       |
+| "11,--,10,kyr,BP,"     |
+| "6.0,--,6.7,kyr,BP,"   |
+
+| Age captures     |
+| -----------      |
+| "76"  "to" "62"  |
+| "6"   "--" "6.4" |
+| "6"   "to" "3"   |
+| "11"  "--" "10"  |
+| "6.0" "--" "6.7" |
+
+| Date Label  |
+| ----------- |
+| "kyr,BP"    |
+| "kyr,BP"    |
+| "kyr,BP"    |
+| "kyr,BP"    |
+| "kyr,BP"    |
+
 #extract "xx BP"
 is_date <- str_detect(nlp_group$word, "BP")
 
