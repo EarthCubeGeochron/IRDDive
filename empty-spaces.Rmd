@@ -1,52 +1,123 @@
 ---
-title: "Finding Ice-Rafted Debris Site Locations over the Pliocene with GeoDeepDive"
-author: "Jeremiah Marsicek and Simon Goring"
+title: "Ice-Rafted Debris Site Locations over the Pliocene with GeoDeepDive"
+author: "Simon Goring and Jeremiah Marsicek"
 output:
   html_document:
     code_folding: show
     highlight: pygment
     keep_md: yes
     number_sections: no
+    css: style/common.css
   pdf_document:
     latex_engine: xelatex
 always_allow_html: yes
 ---
 
-
-<style>
-      @import url('https://fonts.googleapis.com/css?family=Roboto:400,700');
-      @import url('https://fonts.googleapis.com/css?family=Droid+Serif');
-      body {
-        font-family: 'Droid Serif', serif;
-      }
-      h1 {
-        font-family: 'Roboto';
-        font-weight: 500;
-        line-height: 1.1;
-        color: #48ca3b;
-      }
-      h2 {
-        font-family: 'Roboto';
-        font-weight: 300;
-        line-height: 1;
-        color: #48ca3b;
-      }
-</style>
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
 ```
 
-## Ice-rafted debris in the Pliocene
+## Managing GeoDeepDive Workflows: Understanding Dark Data Recovery in the Geosciences
 
-GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents (a description of GDD output was written by @SimonGoring and can be found at http://www.goring.org/empty-spaces/empty-spaces.html). Our goal is to mine papers that contain ice-rafted debris (IRD) data over the Pliocene, determine whether those publications contain actual IRD data and locations, mine the coordinates, and plot the global distribution of IRD events over the last 5.3 million years (and perhaps their source material). This will be important for understanding X, Y, and Z.   
+* Powerful new technological tools provide an opportunity to use software tools to directly interrogate the publication record.
+
+* Widespread adoption requires the provision of the applications and resources and also documentation.
+
+* What is GeoDeepDive (Shannan)
+
+* Here we show how a workflow within one domain can be developed to generate new understanding of the distribution of records in space and time.
+
+### Workflow Overview
+
+GeoDeepDive contains X records at present.  These documents contain over XXX sentences and XXXX unique words.  The process of working with these records is itterative, since the time required to process and manupilate data is time consuming.
+
+GeoDeepDive manages data within a Postgres Database, with a data model that uses sentences as the atomic unit.  Each sentence within a paper is identified by a unique document id (`gddid`) and a unique sentence number within the paper.  A separate table related `gddid`s to publication data (title, journal, authors, etc.).  In this way, we can think of our individual steps as happening at two separate levels, the sentence level and at the document level.  Because GDD also maintains relationships between sentences and journals there is the possibility of having secondary and tertiary hierarchies, but for this article we will focus on "sentence" and "document" level properties.
+
+To understand the process we will undertake an example workflow to extract space and time coordinates for evidence of Ice Rafted Debris in the Pleistocene.
+
+WHY IS THIS INTERESTING? (Shaun?)
+
+#### Subsetting and Cleaning
+
+Beginning with an initial subset of data, using one or few keywords will pare down the total set of documents.  To obtain a training data set keyword detection operates at the sentence level, but returns a list of $n$ documents for which any sentence contains a match to the keyword, where $n$ is pre-defined, and often much smaller than the actual total match set, depending on the term of interest.
+
+By subsetting we can go from the total XXX documents within the GDD Corpus to a subset of YYY documents, of which we develop on a further subset of 150 records.
+
+<!-- Figure here: GDD Corpus vs some possible domain term searches and IRD -->
+
+Given that we are using text matching to subset the documents (mention other "stacks of pubs?") it is possible that not all of the papers reflect our intention.  For example, searching for `IRD` as a keyword brings up articles that use `IRD` as an acronym for Ice Rafted Debris, but also the French Research Institute IRD.  Throughout this paper we will refer to *rules*, generally these are statements that can resolve to a boolean (TRUE/FALSE) output.  So for example, within our subset we could search for all occurrences of `IRD` and `CNRS`:
+
+```{r, eval=FALSE, echo=TRUE}
+sentence <- "this,is,a,IRD,and,CNRS,sentence,you,didny,want,."
+stringr::str_detect(sentence, "IRD") & !stringr::str_detect(sentence, "CNRS")
+```
+
+This statement will evaluate to `TRUE` if `IRD` appears in a sentence without `CNRS`.  If we apply this sentence level test at the document level (`any(test == TRUE)`) we can know which papers have the right `IRD` for our purposes. This then further reduces the number of papers (and sentences) we need to test.
+
+### Extracting Data
+
+From the cleaning stage we enter an itterative stage, where we develop tests and workflows to extract information we want to find.  In many cases this will require further text matching, and packages in R such as `stringr` will be very useful.  Additional support can come from the Natural Language Processing output that can be generated for the data.
+
+In all of these cases, we generate clear rules to be tested, and then apply them to the document.
+
+Because understanding ice rafted debris distributions and timing in the Pliocene requires understanding both space and time, we need to find spatial coordinates and ages within a paper.  As with the cleaning earlier, any paper that contains neither, or one but not the other is not of interest for this application.
+
+But just knowing space and time are part of the paper isn't sufficient.  We need to be able to distinguish between a reported age and an age related to the event we are interested in, and so again we must develop general rules that allow us to distinguish all ages from ages of interest, and all spatial locations from spatial locations of interest.
+
+<!-- Figure, where are ages and spatial coordinates reported in GDD documents in general (sentence number of X sentences) -->
+
+### Exploratory Itteration
+
+There are a number of reasons to continue to refine the rules you use to discover data in this workflow.  First, regular expressions are complicated and OCR is not always accurate.  Second, different disciplines and journals use different standards for reporting.  For example, if we were interested in paleoecological information we would need to know that `paleoecology` and `palaeoecology` refer to similar concepts.  Similarly, `ice rafted debris` may also be refered to as `terriginous` deposits in the marine context (?).
+
+Repeatedly reviewing matches at the sentence level and at the document level (Why did this match?  Why didn't this paper return a match?) is critical to developing a clear workflow.
+
+Some potential pitfalls include
+  * OCR matching - commonly mistaken letters (O, Q, o)
+  * Age reporting variety
+  * GDD sentence construction
+
+In many cases, beginning with very broad tests and slowly paring down to more precise tests is an approprite pattern.  In this case, tools like RMarkdown documents are very helpful since existing packages like `DT` and `leaflet` provide powerful support for interactive data exploration.  We can look at the distribution of age-like elements within a paper and see if they match with our expectations ("Why does *Debris fields in the Miocene* contain Holocene-aged matches?", "Why does this paper about Korea report locations in Belize?").  From there we can continue to revise our tests.
+
+Section on `word2vec`
+
+### Reproducible and Validated Workflows
+
+As the workflow develops we can begin to report on patterns and findings.  Some of these may be semi-qualitative ("We find the majority of sites are dated to the LGM"), some may involve statistical analysis ("The presence of IRD declines linearly with decreasing latitude ($p$ < $0.05$)").  In an analysis where the underlying dataset is static it is reasonable to develop a paper and report these findings as-is.
+
+The GeoDeepDive infrastructure leverages a process of publication ingest that adds up to XXXX papers a day.  Given this, it is likely that some patterns may change over time as more information is brought to bear.  Those with strong physical underpinnings may be reinforced, but some that may result, in part, from artifacts within the publication record, may change.  For this reason the use of assertions within the workflow become critically important.
+
+Test-driven development is common in software development.  As developers develop new features they often develop tests for the features as a first step.  The analogy in our scientific workflow is that findings are features, and as we report on them we want to be assured that those findings are valid.  In R the `assertthat` package provides a tool for testing statements, and providing robust feedback.
+
+```{r eval=FALSE}
+howmany_dates <- all_sentences %>% 
+  mutate(hasAge = stringr::str_detect(words, "regular expression for dates")) %>% 
+  group_by(gddid) %>% 
+  summarise(age_sentences = any(hasAge),
+            n = n())
+
+# We initially find that less than 10% of papers have dates in them, and we are going to report that as an important finding in the paper.
+
+percent_ages <- sum(howmany_dates$age_sentences) / nrow(howmany_dates)
+
+assertthat::assert_that(percent_ages < 0.1, msg = "More than 10% of papers have ages.")
+```
+
+#### Workflow Summary
+
+With these elements we now have an itterative process that is also responsive to the underlying data.  We have mapped out the general overview of our reported findings and developed clear tests under which our findings are valid.  We can create a document that combines our code and text in an integrated manner, supporting FAIR Principles, and making the most out of the new technilogy.
+
+In the following section we will run through this workflow in detail.
+
+### Ice Rafted Debris Case Study: 
+
+#### Finding Spatial Matches
 
 To begin, we want to load the packages we will be using, and then import the data:
 
 ```{r load_data, message=FALSE, warning = FALSE}
 
-devtools::install_github('EarthCubeGeochron/geodiveR')
+#devtools::install_github('EarthCubeGeochron/geodiveR')
 
 library(geodiveR)
 
@@ -76,7 +147,7 @@ nlp<-nlp_clean$nlp
 
 From this we get an output object that includes a key for the publication (`_gddid`, linking to the `publications` variable), the sentence number of the parsed text, and then both the parsed text and some results from natural language processing. We also get a list of gddids to keep or drop given the regular expressions we used to find instances of IRD in the affiliations or references sections of the papers. This leaves us with 82 documents:
 
-```{r warning=FALSE, echo = FALSE}
+```{r demo_table, warning=FALSE, echo = FALSE}
 
 short_table <- nlp  %>% 
   filter(1:nrow(nlp) %in% 1) %>%
@@ -109,12 +180,11 @@ short_table %>%
 
 We're interested in trying to use GDD to obtain site coordinates for sites that contain IRD data over the last 5 million years.  This would help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
 
-
 ## Getting Coordinates
 
 To obtain coordinates from the paper we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We then must identify what exactly we think coordinates might look like and build a regular expression (or set of regular expressions) to accurately extract these values.  Since we will be processing DMS coordinates differently than DD coordinates we generate two regular expressions:
 
-```{r}
+```{r regex_degrees}
 dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
 
  dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
@@ -127,14 +197,14 @@ These regular expressions allow for negative or positive coordinate systems, tha
 
 The regex commands were constructed using capture (and non-capture) groups to work with the `stringr` package, so that we obtain five elements from any match.  The full match, the degrees, the minutes and the seconds (which may be an empty string).  It also returns the quadrant (NESW).
 
-```{r}
+```{r, regex_apply}
 degmin <- str_match_all(nlp$word, dms_regex)
 decdeg <- str_match_all(nlp$word, dd_regex)
 ```
 
 Since the documents are broken up into sentences we should expect that all coordinates are reported as pairs, and so we might be most interested in finding all the records that show up with pairs of coordinates.  Let's start by matching up the publications with sentences that have coordinate pairs:
 
-```{r, echo = FALSE}
+```{r, coord_dtable, echo = FALSE}
 
 coord_pairs <- sapply(degmin, function(x)length(x) %% 2 == 0 & length(x) > 0) |
   sapply(decdeg, function(x)length(x) %% 2 == 0 & length(x) > 0)
@@ -160,7 +230,7 @@ In reality, this is likely to be, in part, an issue with the OCR/regex processin
 
 So, given the coordinate strings, we need to be able to transform them to reliable lat/long pairs with sufficient trust to actually map the records.  These two functions will convert the GeoDeepDive (GDD) word elements pulled out by the regular expression searches into decimal degrees that can account for reported locations.
 
-```{r}
+```{r, extract_coords}
 
 convert_dec <- function(x, i) {
 
@@ -219,6 +289,7 @@ convert_dm <- function(x, i) {
 Then, once we've done that, we need to apply those functions to the set of records we've pulled to build a composite table:
 
 ```{r}
+
 coordinates <- list()
 coord_idx <- 1
 
@@ -272,7 +343,7 @@ One of the next steps once the corpus of doucments is cleaned and coordinates ob
 | a BP          |
 | etc.          |
 
-For this, we can use the browse.R function to look for the different naming conventions and then start pulling ages and age ranges associated with them. 
+For this, we can use the `browse()` function to look for the different naming conventions and then start pulling ages and age ranges associated with them. 
 
 ```{r, eval=FALSE}
 <<<<<<< Updated upstream
@@ -294,15 +365,16 @@ browse(x = data.frame(gddid = x$`_gddid`[ird_word&!france],
 number <- str_detect(full_nlp$word, 
                          ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr,")
 ```
-##Output from pulling and cleaning dates using regex:
+
+## Output from pulling and cleaning dates using regex:
 
 | Age ranges             |         
-| -----------            |         
-| "76,to,62,kyr,BP,"     |       
-| "6,--,6.4,kyr,BP,"     |        
-| "6,to,3,kyr,BP,"       |       
-| "11,--,10,kyr,BP,"     |        
-| "6.0,--,6.7,kyr,BP,"   |        
+| -----------            |
+| "76,to,62,kyr,BP,"     |
+| "6,--,6.4,kyr,BP,"     |
+| "6,to,3,kyr,BP,"       |
+| "11,--,10,kyr,BP,"     |
+| "6.0,--,6.7,kyr,BP,"   |
 
 | Age captures     |
 | -----------      |
