@@ -1,0 +1,86 @@
+---
+title: "Finding Ice-Rafted Debris Site Locations over the Pliocene with GeoDeepDive"
+author: "Jeremiah Marsicek and Simon Goring"
+output:
+  html_document:
+    code_folding: show
+    highlight: pygment
+    keep_md: yes
+    number_sections: no
+  pdf_document:
+    latex_engine: xelatex
+always_allow_html: yes
+---
+
+<style>
+      @import url('https://fonts.googleapis.com/css?family=Roboto:400,700');
+      @import url('https://fonts.googleapis.com/css?family=Droid+Serif');
+      body {
+        font-family: 'Droid Serif', serif;
+      }
+      h1 {
+        font-family: 'Roboto';
+        font-weight: 500;
+        line-height: 1.1;
+        color: #48ca3b;
+      }
+      h2 {
+        font-family: 'Roboto';
+        font-weight: 300;
+        line-height: 1;
+        color: #48ca3b;
+      }
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+```
+
+## Ice-rafted debris in the Pliocene
+
+GeoDeepDive (GDD) mines publications using OCR and then applies several Natural Language Processing (NLP) utilities to the documents (a description of GDD output was written by @SimonGoring and can be found at http://www.goring.org/empty-spaces/empty-spaces.html). Our goal is to mine papers that contain ice-rafted debris (IRD) data over the Pliocene, determine whether those publications contain actual IRD data and locations, mine the coordinates, and plot the global distribution of IRD events over the last 5.3 million years (and perhaps their source material). This will be important for understanding X, Y, and Z.   
+
+We're interested in trying to use GDD to obtain site coordinates, ages, and depths for sites that contain IRD data over the last 5 million years.  This would help researchers searching for relevant sites for use in meta-analysis, or in comparing their results to results in similar geographic locations by providing relevant geocoded publications and links to the publications using DOIs. 
+
+
+We have three different regular expressions to search for IRD. One that will identify 'IRD' in a paper, and two that ensure the term 'IRD' is on its own. We think this should return IRD, however, it fails when authors of papers are from CNRS (an institute in France), when 'IRD' is in the references sections or the introduction, or when it is in the words 'third' and 'bird'. Ideally we are looking for where 'IRD' is in the Results and Conclusions sections and associated with a location and/or an age.   
+
+## Getting Locations/Coordinates
+
+We have two different regular expressions to search for coordinates. One that will identify decimal degree coordinates, and another that will identify DMS coordinates. We think that this should return latitude and longitude information for a core site containing 'IRD', however, we must consider that there are several potential issues.  The first is that not all coordinates will neccessarily refer to an actual ocean core.  We may also, inadvertantly, find numeric objects that appear to be coordinates, but are in fact simply numbers.  We identified what exactly we think coordinates might look like and constructed the regular expressions mentioned above accordingly:
+
+| Longitudes     |  Latitudes     | Matches |
+| -----------    | -----------    | ------ |
+| 45°56' W       | 45°56'N        |   |
+| 45◦56 W        | 45◦56'N      |   |
+| -45°56' E        | -12°23'12" N |   |
+| 123.5° E       | 43ø30`N      |   |
+|  37º34.284´E |  66◦18.8S    |   |
+| 52.5°N       |  52.5°N        |   |
+| 68,300e69,400N | - gives a range |   |
+
+The regular expressions do a reasonably good job extracting coordinate information, however, they are still missing some. This is perhaps because we have not considered what all coordinates look like, or perhaps our regular expressions are too strict.  
+
+## We also process ages and age ranges:
+Currently we have over ten regular expressions that look age information associated with 'IRD' deposits. This required building regex's that pull ages with many different naming conventions. For example, we needed to consider: 
+
+| Age reference |
+| -----------   |
+| years BP      |
+| kyr BP        |
+| ka BP         |
+| a BP          |
+| etc.          |
+
+
+From our regular expressions, we expect that we will extract age information from papers. Thus far, we are successfully identifying instances of dates in the papers, however, the challenge is that refer to external things, like the YD, other papers, or basal ages. We now need to know what the context of the dates are when we return ages. 
+
+
+## Processing depths of cores
+
+We hope to build regular expressions that will extract the depths of the drilling site (e.g., where it found core coordinates), as well as depths associated with 'IRD' within a core. We expect this will give us a list of depths, and the challenge will be to determine which depths are associated with core sites and which are associated with 'IRD' deposits.  
+
+
+
+

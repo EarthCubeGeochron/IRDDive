@@ -2080,7 +2080,7 @@
         "volume": "", 
         "link": [
             {
-                "url": "http://dx.doi.org/10.1130/g37756.1", 
+                "url": "https://doi.org/10.1130/g37756.1", 
                 "type": "publisher"
             }
         ], 
@@ -2992,7 +2992,7 @@
         "volume": "45", 
         "link": [
             {
-                "url": "http://dx.doi.org/10.1130/gsab-45-909", 
+                "url": "https://doi.org/10.1130/gsab-45-909", 
                 "type": "publisher"
             }
         ], 
@@ -3781,7 +3781,7 @@
         "volume": "23", 
         "link": [
             {
-                "url": "http://dx.doi.org/10.1130/0091-7613(1995)023<0241:mpodss>2.3.co;2", 
+                "url": "https://doi.org/10.1130/0091-7613(1995)023<0241:mpodss>2.3.co;2", 
                 "type": "publisher"
             }
         ], 

@@ -34,3 +34,7 @@ Using these example publications I have found the these terms appear the most:
   Place names using “Who’s on First” (a large Postgres database of place names with associated polygons).
   
   Extract time periods using regular expressions and queries for stratigraphic names and regular expressions.
+  
+## Accessing the RMarkdown document as an html: 
+
+http://htmlpreview.github.io/?https://github.com/EarthCubeGeochron/IRDDive/blob/master/empty-spaces.html

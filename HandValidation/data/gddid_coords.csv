@@ -1,0 +1,26 @@
+gddid,sentence,true_false,notes
+54b43250e138239d8684b26f,74,TRUE,Good
+54b43250e138239d8684b26f,79,TRUE,Good
+54b43266e138239d8684f1fd,8,TRUE,Good
+54b43266e138239d8684f23e,60,TRUE,"Good, need to fix coordinates (appear to be in a Table)"
+55bbc758e1382373b63b8eba,15,TRUE,Good
+56f52aa4cf58f192cccc8de1,43,TRUE,Good
+574aa9bccf58f12e61154400,40,TRUE,Good
+57e6454bcf58f17e5ec0644f,124,TRUE,Good
+55f42c97cf58f16256a222db,40,TRUE,We get this paper.
+54b4327ce138239d86852e8c,57,FALSE,Has IRD and coords (coords have a period in them - a fix for the regex)
+54b4327ce138239d86852e8c,58,FALSE,Has IRD and coords (coords have a period in them - a fix for the regex)
+54cd7d0fe138236bcc92a483,31,FALSE,"Have IRD associated w/ H1 and coordinates from two cores in the paper (37Á46_N, 10Á11_W) "
+55774781e138234790a015c4,54,FALSE,We should get this paper. Coordinates show up as 52.5 ÁN and 22.1 ÁW. 
+55c8ff87cf58f1a8110ba771,96,FALSE,We should get this paper as well. Has several cores and IRD info but coordinates appear like this in a Table (81Á32.1N; 30Á34.0E)
+55d0f741cf58f1b3b25e3501,36,FALSE,Has coordinates. Need to update the regex to capture them. 
+5640229ccf58f18954975292,41,FALSE,"Has coordinates (typed as 37Á34.284_N, 10Á7.562_W) and an IRD record."
+56743ec9cf58f122156070fb,49,FALSE,Has coordinates in a table and IRD data.
+56ba954ecf58f18714edf45c,24,FALSE,"A paper about IRD, coordinates as ""This core, CHN82-20 (43À30'N,  29À52'W,  3020  m)"
+575db265cf58f10504637045,44,FALSE,"Has IRD and coords (49Á05.29'N; 13Á25.90'W), but no ages to IRD record - only depth."
+5790fe6bcf58f15c1c98ad67,7,FALSE,"IRD and coords (lat 58Á13'N, long 48Á22'W)."
+58789e1fcf58f1ba1f4f82f3,52,FALSE,"IRD and coords (47.306žN, 11.569žE)."
+5a2a9b13cf58f1766a89f254,29,FALSE,Range of coordinates from this paper.
+5a2a9b13cf58f1766a89f254,32,FALSE,Range of coordinates from this paper.
+5a2a9b13cf58f1766a89f254,99,FALSE,IRD coords in a table. 
+5a3a34ebcf58f14a75a2157d,60,FALSE,Has IRD and coordinates in a table.

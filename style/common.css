@@ -1,0 +1,19 @@
+
+body {
+  font-family: 'Droid Serif', serif;
+}
+
+
+h1, h2, h3, h4 {
+  font-family: 'Roboto', sans-serif;
+  color: #48ca3b;
+}
+
+h1 {
+  font-weight: 500;
+  line-height: 1.1;
+}
+h2 {
+  font-weight: 300;
+  line-height: 1;
+}
