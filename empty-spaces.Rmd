@@ -130,7 +130,7 @@ library(purrr)
 library(DT)
 library(assertthat)
 
-sourcing <- list.files('R', full.names = TRUE) %>% 
+sourcing <- list.files('R', pattern = ".R$", full.names = TRUE) %>% 
   map(source, echo = FALSE, print = FALSE, verbose = FALSE)
 
 publications <- fromJSON(txt = 'input/bibjson', flatten = TRUE)
@@ -346,14 +346,13 @@ One of the next steps once the corpus of doucments is cleaned and coordinates ob
 For this, we can use the `browse()` function to look for the different naming conventions and then start pulling ages and age ranges associated with them. 
 
 ```{r, eval=FALSE}
-<<<<<<< Updated upstream
 
-is_date <- str_detect(full_nlp$word, "BP")
+is_date <- str_detect(nlp$word, ",BP,")
 
-x$word[is_date&ird_word][4]
+nlp$word[is_date]
 
 date_range <- str_detect(full_nlp$word, 
-                         "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
+                   "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
 
 date_match <- str_match(full_nlp$word, 
                          "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>% na.omit()

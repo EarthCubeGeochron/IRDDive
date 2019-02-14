@@ -12,5 +12,5 @@ in.paper <- function(vec, df){
       paperIds <- c(paperIds, df$`_gddid`[i])
     }
   }
+  return(paperIds)
 }
-return(paperIds)
