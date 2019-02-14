@@ -319,7 +319,7 @@ coordinates_df <- coordinates %>% bind_rows %>%
 coordinates_df$doi <- coordinates_df$identifier %>% map(function(x) x$id) %>% unlist
 
 leaflet(coordinates_df) %>% 
-  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addProviderTiles(providers$Esri.WorldImagery) %>% 
   addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
                                   '<a href=https://doi.org/',
                                   coordinates_df$doi,'>Publication Link</a><br>',
