@@ -112,7 +112,6 @@ In the following section we will run through this workflow in detail.
 ### Ice Rafted Debris Case Study: 
 
 #### Finding Spatial Matches
->>>>>>> master
 
 To begin, we want to load the packages we will be using, and then import the data:
 
@@ -131,7 +130,7 @@ library(purrr)
 library(DT)
 library(assertthat)
 
-sourcing <- list.files('R', full.names = TRUE) %>% 
+sourcing <- list.files('R', pattern = ".R$", full.names = TRUE) %>% 
   map(source, echo = FALSE, print = FALSE, verbose = FALSE)
 
 publications <- fromJSON(txt = 'input/bibjson', flatten = TRUE)
@@ -318,7 +317,7 @@ coordinates_df <- coordinates %>% bind_rows %>%
 coordinates_df$doi <- coordinates_df$identifier %>% map(function(x) x$id) %>% unlist
 
 leaflet(coordinates_df) %>% 
-  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addProviderTiles(providers$Esri.WorldImagery) %>% 
   addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
                                   '<a href=https://doi.org/',
                                   coordinates_df$doi,'>Publication Link</a><br>',
@@ -346,12 +345,12 @@ For this, we can use the `browse()` function to look for the different naming co
 
 ```{r, eval=FALSE}
 
-is_date <- str_detect(full_nlp$word, "BP")
+is_date <- str_detect(nlp$word, ",BP,")
 
-x$word[is_date&ird_word][4]
+nlp$word[is_date]
 
 date_range <- str_detect(full_nlp$word, 
-                         "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
+                   "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
 
 date_match <- str_match(full_nlp$word, 
                          "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>% na.omit()

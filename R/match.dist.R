@@ -1,8 +1,8 @@
-df <- full_nlp
-regex1 <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
-regex2 <-  ",(\\d+(?:[\\.\\s]\\d+){0,1}),ka,"
-vecDate <- match.regex(regex2,df)
-vecCoor <- match.regex(regex1,df)
+#df <- full_nlp
+#regex1 <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
+#regex2 <-  ",(\\d+(?:[\\.\\s]\\d+){0,1}),ka,"
+#vecDate <- match.regex(regex2,df)
+#vecCoor <- match.regex(regex1,df)
 
 match.dist <- function(vecDate, vecCoor, df){
   # Create an empty vector for the output
@@ -12,7 +12,7 @@ match.dist <- function(vecDate, vecCoor, df){
   # Go through the coordinate vector
   i=1
   while(i <= length(vecCoor)){
-    # When the value of the coordinate vector at i is true 
+    # When the value of the coordinate vector at i is true
     if(isTRUE(vecCoor[i])){
       # initiate a counter for the inner loop of date vector
       j <- 1
