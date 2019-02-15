@@ -2,7 +2,7 @@
 # The first chunk of empty-spaces file
 
 library(geodiveR)
-
+library(ggplot2)
 library(jsonlite)
 library(readr)
 library(dplyr)
@@ -48,3 +48,48 @@ dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
 
 newFrame <- sentence.distribution(nlp, dms_regex, dd_regex, age_range_regex, age_yr_regex, age_yr2_regex, age_ka_regex, age_bp_regex)
 
+#Creating new dataframe for age and coordinate densities
+ageDensity <- data.frame(
+  newID = integer(),
+  distribution = double(),
+  stringsAsFactors=FALSE
+)
+
+coorDensity <- data.frame(
+  newID = integer(),
+  distribution = double(),
+  stringsAsFactors=FALSE
+)
+
+# Looping through the newFrame and get rid of sentences with no ages
+newAgeIndex <- 0
+
+for (i in 1:nrow(newFrame)){
+  if(newFrame$ifAge[i]){
+    newAgeIndex = newAgeIndex + 1
+    ageDensity[newAgeIndex, ] <- c(newAgeIndex, newFrame$distribution[i])
+  }
+}
+
+# Looping through the newFrame and get rid of sentences with no coordinates
+
+newCoorIndex <- 0
+
+for (i in 1:nrow(newFrame)){
+  if(newFrame$ifCoor[i]){
+    newCoorIndex = newCoorIndex + 1
+    coorDensity[newCoorIndex, ] <- c(newCoorIndex, newFrame$distribution[i])
+  }
+}
+
+# Plot the density
+
+p1 <- ggplot(data = ageDensity, aes(x=distribution))+
+  geom_density(fill="blue", alpha=0.3) +
+  geom_density(data=coorDensity, aes(x=distribution), fill="purple", alpha=.5) +
+  labs(title = "Distribution of ages and coordinates in articles")+
+  labs(y="Density")+
+  labs(x="Relative location in the article")+
+  annotate("text", x=0.25, y=4, label= "Coordinates") +
+  annotate("text", x=0.55, y=1.5, label= "Ages")
+p1
