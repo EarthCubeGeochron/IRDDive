@@ -23,19 +23,18 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
 
 * Widespread adoption requires the provision of the applications and resources and also documentation.
 
-* What is GeoDeepDive (Shannan)
+* GeoDeepDive is digital library that allows automated, secure acquisition and management of documents, supporting large-scale text and data mining of published, peer-reviewed journal articles.
 
 * Here we show how a workflow within one domain can be developed to generate new understanding of the distribution of records in space and time.
 
 ### Workflow Overview
 
-GeoDeepDive contains X records at present.  These documents contain over XXX sentences and XXXX unique words.  The process of working with these records is itterative, since the time required to process and manupilate data is time consuming.
+GeoDeepDive contains > 9 million records at present.  These documents contain over XXX sentences and XXXX unique words.  The process of working with these records is itterative, since the time required to process and manupilate data is time consuming.
 
 GeoDeepDive manages data within a Postgres Database, with a data model that uses sentences as the atomic unit.  Each sentence within a paper is identified by a unique document id (`gddid`) and a unique sentence number within the paper.  A separate table related `gddid`s to publication data (title, journal, authors, etc.).  In this way, we can think of our individual steps as happening at two separate levels, the sentence level and at the document level.  Because GDD also maintains relationships between sentences and journals there is the possibility of having secondary and tertiary hierarchies, but for this article we will focus on "sentence" and "document" level properties.
 
-To understand the process we will undertake an example workflow to extract space and time coordinates for evidence of Ice Rafted Debris in the Pleistocene.
+To understand the process we will undertake an example workflow to extract space and time coordinates for evidence of icce-rafted debris (IRD) in the Pleistocene. Many publications document the existence of IRD at the level of individualmarine drilling sites, but assembling this information across publications into large-scale mapped syntheses is a non-trivial task that has traditionally taken years of painstaking literature compilation. Building a database of IRD deposits and their spatial distributtion from the literature will help our community better understand and characterize Northern and Southern Hemisphere ice sheets over the last 5.3 million years, ideally leading to a better understanding of glacial-interglacial cycles.  
 
-WHY IS THIS INTERESTING? (Shaun?)
 
 #### Subsetting and Cleaning
 
