@@ -9,7 +9,6 @@
 IRDDive.Rproj
 input/sentences_nlp352
 .DS_store
->>>>>>> 3b3265ca328708bd9d64d6889d063b1545cc2c35
 # Example code in package build process
 *-Ex.R
 # Output files from R CMD build
@@ -30,7 +29,3 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
-<<<<<<< HEAD
-IRDDive.Rproj
-=======
->>>>>>> 3b3265ca328708bd9d64d6889d063b1545cc2c35

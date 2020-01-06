@@ -45,7 +45,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     
   }
   
-  if(!is.data.frame(x) & !is.null(pubs) & is.null(words) & is.null(corpus)) {
+  if (!is.data.frame(x) & !is.null(pubs) & is.null(words) & is.null(corpus)) {
     assertthat::assert_that(all(x %in% pubs$`_gddid`),
                             msg = "There are unique identifiers passed that are not in the publication table.")
     
@@ -62,12 +62,12 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     output <- data.frame(short_pub) %>% distinct(.keep_all = TRUE)
   }
   
-  if(is.data.frame(x) & !is.null(pubs) & is.null(words) & is.null(corpus)) {
+  if (is.data.frame(x) & !is.null(pubs) & is.null(words) & is.null(corpus)) {
 
     assertthat::assert_that(any(c('gddid', '_gddid') %in% colnames(x)),
                  msg = "There must be a column either `gddid` or `_gddid` in `x` if `x` is a `data.frame`")
     
-    assertthat::assert_that('word' %in% colnames(x),
+    assertthat::assert_that('words' %in% colnames(x),
                             msg = "There must be a column `words` in `x` if `x` is a `data.frame`")
 
     if ('_gddid' %in% colnames(x)) {
@@ -79,9 +79,9 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
     pubs$doi <- paste0('<a href="https://doi.org/', sapply(pubs$identifier, '[[', 'id'), '">DOI</a>')
     
     short_pub <- dplyr::left_join(x, pubs, by = "gddid") %>% 
-      select(gddid, word, title, year, journal.name, doi)
+      select(gddid, words, title, year, journal.name, doi)
     
-    short_pub$words <- clean_words(short_pub$word)
+    short_pub$words <- clean_words(short_pub$words)
     
     short_pub$gddid = paste0('<small><a title ="', 
                              short_pub$gddid, '" href = "',
@@ -93,7 +93,7 @@ browse <- function(x, corpus = NULL, pubs = NULL, words = NULL) {
   }
   
   out_table <- DT::datatable(output, escape = FALSE, rownames = FALSE) %>% 
-    DT::formatStyle(columns = 'word',
+    DT::formatStyle(columns = 'words',
       `word-wrap` = 'break-word',
                     `word-break` = 'break-all',
                     `white-space` = 'normal')
