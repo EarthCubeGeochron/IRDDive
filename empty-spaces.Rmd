@@ -16,6 +16,7 @@ always_allow_html: yes
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+suppressMessages(library(dplyr, quiet = TRUE))
 ```
 
 ## 1. Abstract ##
@@ -27,9 +28,9 @@ Key Words: Text and data mining, Pliocene, Pleistocene, ice-rafted debris
 
 ### 2. Introduction and Workflow Overview
 
-Peer-reviewed papers communicate knowledge to their audience through figures, text and tables.  Efforts to improve the practice of data archiving have been increasing (“AGU Publications Data Policy,”; FAIRsharing Team, 2018) as individuals and groups recognize the importance of data sharing to help improve science outcomes.  Despite improved efforts to better curate data, however, a large volume of data and information still exists exclusively in published form as text within manuscripts, embedded in tables, or graphically within figures.  The volume of published literature makes meta-analysis difficult, and as such, new automated software tools are being developed to extract information directly from the scientific literature. Various fields are developing tools for automated extraction of meaningful information from the scientific literature, including natural language processing (NLP) and other forms of machine learning (ML), the vast majority of which is being developed and deployed over general and freely available content, like Twitter feeds and publication abstracts. Currently, the development of new software tools is outpacing their deployment over digital libraries and infrastructures that can serve the unique needs of geoscientists.
+Peer-reviewed papers communicate knowledge to their audience through figures, text and tables.  Efforts to improve the practice of data archiving have been increasing (“AGU Publications Data Policy,”; FAIRsharing Team, 2018) as individuals and groups recognize the importance of data sharing to help improve science outcomes.  Despite improved efforts to curate data, however, a large volume of data and information still exists exclusively in published form as text within manuscripts, embedded in tables, or graphically within figures.  The volume of published literature makes meta-analysis difficult, and as such, new automated software tools are being developed to extract information directly from the scientific literature. Various fields are developing tools for automated extraction of meaningful information from the scientific literature, including natural language processing (NLP) and other forms of machine learning (ML), the vast majority of which is being developed and deployed over general and freely available content, like Twitter feeds and publication abstracts. Currently, the development of new software tools is outpacing their deployment over digital libraries and infrastructures that can serve the unique needs of geoscientists.
 
-GeoDeepDive (geodeepdive.org) is a digital library and computing system that currently contains over 11 million publications from multiple different commercial and open-access content providers. Early versions of GeoDeepDive have been used to automatically find and extract fossil occurrences from the scientific literature (Peters et al., 2014) as well as find instances of stromatolite occurrences, with the goal of better understanding stromatolite resurgences in the geological past (Peters et al., 2017). However, the newness of GeoDeepDive as a platform and the limited nature of software tools that take advantage of it has limited the scope of its impact.  Here we provide a sample workflow that leads the reader through key, public elements of GeoDeepDive, with a goal of retrieving documents on the distribution of ice-rafted debris (IRD) from the Pliocene to present. We choose to focus our effort on IRD because of the near uniqueness of the acronym in the geoscience literature and because IRD is almost exclusively restricted to ocean settings, thus simplifying our ability to identify false positives – occurrences of IRD that do not refer to ice-rafted debris – in our training dataset.  Furthermore, IRD distribution in marine sediments provides a key constraint on cryosphere development, yielding insight into past climate evolution (e.g., Hemming, 2004).
+GeoDeepDive ([http://geodeepdive.org]()) is a digital library and computing system that currently contains over 11 million publications from multiple different commercial and open-access content providers. Early versions of GeoDeepDive have been used to find and extract fossil occurrences from the scientific literature (Peters et al., 2014) as well as find instances of stromatolite occurrences, with the goal of better understanding stromatolite resurgences in the geological past (Peters et al., 2017). However, the newness of GeoDeepDive as a platform and the limited nature of software tools that take advantage of it has limited the scope of its impact.  Here we provide a sample workflow that leads the reader through key, public elements of GeoDeepDive, with a goal of retrieving documents on the distribution of ice-rafted debris (IRD) from the Pliocene to present. We choose to focus our effort on IRD because of the near uniqueness of the acronym in the geoscience literature and because IRD is almost exclusively restricted to ocean settings, thus simplifying our ability to identify false positives – occurrences of IRD that do not refer to ice-rafted debris – in our training dataset.  Furthermore, IRD distribution in marine sediments provides a key constraint on cryosphere development, yielding insight into past climate evolution (e.g., Hemming, 2004).
 
 One implementation of GeoDeepDive uses sentences as the atomic unit, managing the sentence-level data within a PostgreSQL database.  Each sentence within a paper is identified by a unique document id (`gddid`, an internally unique identifier to accommodate publications that may or may not have their own formal DOI) and a sentence number that is assigned and unique within the paper.  A separate table relates `gddid`s to publication metadata (e.g. title, journal, authors, etc.).  In this way, GeoDeepDive workflows and the individual steps within these workflows can be thought of as operating at two distinct levels: the sentence level and the document level.  Because GeoDeepDive (GDD) also provides unique IDs for each journal and links these to the sentence IDs, journal-level analytics are possible. GDD makes use of Stanford NLP (Manning et al., 2014), so it is also possible to obtain word-level analysis using indexing within sentences. For the purposes of this paper we will focus on "sentence"- and "document"-level properties.
 
@@ -37,24 +38,47 @@ One implementation of GeoDeepDive uses sentences as the atomic unit, managing th
 
 **Figure 1**: *Workflow used to go from a list of documents that mention ice-rafted debris (IRD; IRD is the actual search string in this case) and (Pliocene or Pleistocene or Holocene) to a vetted set of the documents, and finally a summary of the documents and relevant information.*
 
-This paper presents a sample workflow, intended to provide meaningful but simplified results, with the main goal of illustrating the potential of GDD, and to provide users with some understanding of how GDD can be used to extract information from text.  In this example workflow, we will identify papers with mentions of ice-rafted debris (IRD) in the Pliocene and Pleistocene (Fig. 1), extract space and time coordinates using an R Toolkit called geodiveR (github.com/EarthCubeGeochron/geodiveR), and store the data and code in a GitHub repository (github.com/EarthCubeGeoChron).
+This paper presents a sample workflow, intended to provide meaningful but simplified results, with the main goal of illustrating the potential of GDD, and to provide users with some understanding of how GDD can be used to extract information from text.  In this example workflow, we will identify papers with mentions of ice-rafted debris (IRD) in the Pliocene and Pleistocene (Fig. 1), extract space and time coordinates using an R Toolkit called geodiveR ([http://github.com/EarthCubeGeochron/geodiveR]()), and store the data and code in a GitHub repository ([http://github.com/EarthCubeGeoChron]()).
+
+Ice rafted debris is part of a complex of sedimentary deposits within ocean sediments, including Iceberg Rafted Debris, Ice Shelf Rafted Debris and Sea Ice Rafted Debris. Differences between the processes resulting in sediment entrainment and deposition between these types of sediment may result in issues of interpretation.  Sedimentological features can be used to differrentiate particle sizes and shapes to offer a better understanding of the sources of sediments identified as ice-sourced [@st2015microfeatures], and thus provide a more complete picture of the processes that led to deposition. By providing a comprehensive corpus of documents, with identified publications, timings and locations for identified deposits it becomes possible to identify potential outliers or misidentified samples, to re-sample existing physical cores where there may be uncertainty in identification, and ultimately, to generate a more complete model of sea-ice patterns during the Pleistocene.
 
 Many publications document the existence of IRD at the level of individual marine drilling sites, but assembling this information across publications into large-scale mapped syntheses is a non-trivial task that has traditionally taken years of painstaking literature compilation (Heinrich, 1988; Hemming, 2004; Ruddiman, 1977; Stern and Lisiecki, 2013). A comprehensive, accurate database of IRD deposits and their spatial distribution extracted with software from the published scientific literature can help the scientific community better understand and characterize ice sheet dynamics over the last 5.3 million years, ideally leading to a better understanding of how glaciers respond to changes in climate and ocean circulation.
+
+Given the complexity of accurately identifying IRD (as opposed to other ice debris), and the issues related to publication bias in IRD papers (few papers exist with records of IRD beyond the last 1 million years BP), this paper aims to indicate a general workflow to be carried out against the DeepDive infrastructure and to show that a relatively simple framework is able to recover information that can inform further data processing, cleaning and interpretation that would be part of a more formal analysis of patterns of paleo-oceanographic patterns during the Pleistocene.
 
 #### 2.1 Initial Returns and RegEx
 Processing the entirety of the documents within GDD is time consuming, as it contains over 11 million peer-reviewed publications. For any given problem, such as finding all instances of IRD, only a fraction of the total library is relevant.  Using a set of keywords reduces the overall data volume by identifying a subset of all documents that are potentially relevant (i.e., if a document does not contain one or more of the given terms it is unlikely to be relevant, but if it has the terms it should be examined).  For this step, one can use straightforward string matching and take advantage of the GDD public API. Here, we chose a number of terms that would help us identify a set of papers that would give us sufficient breadth of documents, while still reducing the overall size of the corpus.  We used the acronym “IRD”, as well as a number of constraints on geologic time intervals, “Holocene”, “Pleistocene” and “Pliocene” (in our example dataset, this returned 5,315 total documents; Figure 2).  Useful information about these terms can be derived from the “snippets” route of GeoDeepDive’s API, which harnesses an ElasticSearch index spanning the full text layer of all PDFs with a “native” text layer (i.e., PDFs with searchable text in them already, which constitutes the vast majority of PDFs distributed by GDD publishers):
 
+```
 https://geodeepdive.org/api/snippets?term=IRD&full_results=true
+```
+```{r getSimpleApi, echo=FALSE}
+ird_alone <- jsonlite::fromJSON('https://geodeepdive.org/api/snippets?term=IRD&full_results=true')
+ird_hits <- ird_alone$success$hits
+```
 
-The response to this API call is a JSON object that indicates the total number of “hits” of the term, basic bibliographic citation information for each document containing the term, including link to original PDF distributed by the publisher, and a “snippet” of text around mentions of the term in the full text of the document. By default, the matching terms are highlighted with HTML tags (to remove the tags, the parameter “&clean=true” can be added to the URL). Because of the large number of results in the case above, a link to the next page of documents containing the term is also provided, allowing large results sets to be scrolled through by the client.
+The response to this API call is a JSON object that indicates the total number of “hits” of the term (n = `r ird_hits <- ird_alone$success$hits` as of `r Sys.Date()`), basic bibliographic citation information for each document containing the term, including link to original PDF distributed by the publisher, and a “snippet” of text around mentions of the term in the full text of the document:
 
-To combine multiple terms and require that they are both present in a document:
+```{r simpleApiReturn, echo = FALSE}
+jsonlite::toJSON(ird_alone$success$data[1,], pretty=TRUE)
+```
 
+By default, the matching terms are highlighted with HTML tags (to remove the tags, the parameter `&clean=true` can be added to the URL). Because of the large number of results in the case above, a link to the next page of documents containing the term is also provided, allowing large results sets to be scrolled through by the client.
+
+```{r getCombinedApi, echo=FALSE}
+ird_alone <- jsonlite::fromJSON('https://geodeepdive.org/api/snippets?term=IRD,Pleistocene&inclusive=TRUE&full_results=true')
+ird_excl_hits <- ird_alone$success$hits
+```
+
+To combine multiple terms and require that they are both present in a document.  The following API call returns `r `r ird_hits <- ird_alone$success$hits` as of `r Sys.Date()`, far fewer than the more expansive search.
+
+```
 https://geodeepdive.org/api/snippets?term=IRD,Pleistocene&inclusive=TRUE&full_results=true
+```
 
-The GeoDeepDive API provides this level functionality publicly, but it is designed to be deployed in user-constructed applications and is suitable only for limited data extraction tasks. The PostgreSQL representation of the document text data provides a different structure that we focus on here.
+The GeoDeepDive API provides this level of functionality publicly, but it is designed to be deployed in user-constructed applications and is suitable only for limited data extraction tasks. The PostgreSQL representation of the document text data provides a different structure that we focus on here.
 
-Matching in Postgres uses existing PostgreSQL text and string functions, while further text processing uses regular expression matching in R using the stringr package.  The use of the Stanford NLP library allows GDD workflows to take advantage of parts-of-speech tagging, and more advanced NLP tools.  This work is limited to using string matching.
+Matching in Postgres uses existing PostgreSQL text and string functions, while further text processing uses regular expression matching in R using the `stringr` package  [@stringr].  The use of the Stanford NLP library allows GDD workflows to take advantage of parts-of-speech tagging, and more advanced NLP tools.  This work is limited to using string matching.
 
 <!--Figure 2: GDD corpus vs some possible domain term searches and IRD. -->
 
@@ -64,7 +88,7 @@ We begin our analysis with a subset of the data that was pared down from the tot
 
 Searching for `IRD` as a keyword retrieves articles that use `IRD` as an acronym for Ice-Rafted Debris, but it also retrieves articles mentioning the French Research Institute IRD (Institute of Research for Development).  Throughout this paper we will refer to *rules*; generally these are statements that can resolve to a boolean (TRUE/FALSE) output.  So for example, within our subset we could search for all occurrences of `IRD` and `CNRS`:
 
-```{r, eval=FALSE, echo=TRUE}
+```{r noEvalStringrExample, eval=FALSE, echo=TRUE}
 sentence <- "this,is,a,IRD,and,CNRS,sentence,we,didnt,want,."
 stringr::str_detect(sentence, "IRD") & !stringr::str_detect(sentence, "CNRS")
 ```
@@ -100,7 +124,7 @@ However, the publication database in GDD is far from static; the GDD infrastruct
 
 Test-driven development is common in software development.  As developers create new features, a good practice is to first develop tests for the features, to ensure that feature behavior matches expectations.  The analogy in our scientific workflow is that findings are features, and as we report on them we want to be assured that those findings are valid.  In R the `assertthat` package provides a tool for testing statements, and providing robust feedback through custom error messages (Wickham, 2019).
 
-```{r eval=FALSE}
+```{r noEvalDateSummary, eval=FALSE}
 howmany_dates <- all_sentences %>%
   mutate(hasAge = stringr::str_detect(words, "regular expression for dates")) %>%
   group_by(gddid) %>%
@@ -113,10 +137,10 @@ percent_ages <- sum(howmany_dates$age_sentences) / nrow(howmany_dates)
 
 assertthat::assert_that(percent_ages < 0.1, msg = "More than 10% of papers have ages.")
 ```
-Text Box 1. From sentences returned by GDD (all_sentences) create a new column called ‘hasAge’ that is a boolean variable to test whether an age is found.  Once the variable has been created, group the data to test whether any of the papers (each with a unique gddid) has an age reported in the paper, and then count the total number of reported ages within the paper.  If we expect that most papers won’t have reported ages, we can create an assertion, in this case that only 10% of papers have a reported age.  If this assertion fails, then a custom error message is returned.
+
+**Text Box 1**. *From sentences returned by GDD (all_sentences) create a new column called ‘hasAge’ that is a boolean variable to test whether an age is found.  Once the variable has been created, group the data to test whether any of the papers (each with a unique gddid) has an age reported in the paper, and then count the total number of reported ages within the paper.  If we expect that most papers won’t have reported ages, we can create an assertion, in this case that only 10% of papers have a reported age.  If this assertion fails, then a custom error message is returned.*
 
 With these elements we now have an iterative process that is also responsive to the underlying data.  We have mapped out the general overview of our reported findings and developed clear tests under which our findings are valid.  We can create a document that combines our code and text in an integrated manner, supporting FAIR Principles (Wilkinson et al., 2016), and making the most out of the new technology. In the following section we will run through this workflow in detail.
-
 
 ### 6. Ice Rafted Debris Case Study and Discussion
 
