@@ -57,7 +57,7 @@ ird_alone <- jsonlite::fromJSON('https://geodeepdive.org/api/snippets?term=IRD&f
 ird_hits <- ird_alone$success$hits
 ```
 
-The response to this API call is a JSON object that indicates the total number of “hits” of the term (n = `r ird_hits <- ird_alone$success$hits` as of `r Sys.Date()`), basic bibliographic citation information for each document containing the term, including link to original PDF distributed by the publisher, and a “snippet” of text around mentions of the term in the full text of the document:
+The response to this API call is a JSON object that indicates the total number of “hits” of the term (n = `r ird_hits` as of `r Sys.Date()`), basic bibliographic citation information for each document containing the term, including link to original PDF distributed by the publisher, and a “snippet” of text around mentions of the term in the full text of the document:
 
 ```{r simpleApiReturn, echo = FALSE}
 jsonlite::toJSON(ird_alone$success$data[1,], pretty=TRUE)
@@ -70,7 +70,7 @@ ird_alone <- jsonlite::fromJSON('https://geodeepdive.org/api/snippets?term=IRD,P
 ird_excl_hits <- ird_alone$success$hits
 ```
 
-To combine multiple terms and require that they are both present in a document.  The following API call returns `r `r ird_hits <- ird_alone$success$hits` as of `r Sys.Date()`, far fewer than the more expansive search.
+To combine multiple terms and require that they are both present in a document.  The following API call returns `r ird_excl_hits` as of `r Sys.Date()`, far fewer than the more expansive search.
 
 ```
 https://geodeepdive.org/api/snippets?term=IRD,Pleistocene&inclusive=TRUE&full_results=true
@@ -103,18 +103,18 @@ Because understanding both the IRD distribution in ocean sediments and the timin
 
 Extracting the spatial location and age of an IRD occurrence within a paper that contains ‘IRD’, however, is not sufficient.  We need to be able to distinguish between a reported age and an age related to the event we are interested in, and so again we must develop general rules that allow us to distinguish all ages from ages of interest, and all spatial locations from spatial locations of interest.
 
-
 ### Exploratory Itteration
 
 There are a number of reasons to continue to refine the rules used to discover data in this workflow.  First, extraction of text from the PDF and optical character recognition (OCR) is not always accurate, so that some sentences and words are parsed incorrectly.  This problem is particularly acute for geographic coordinates (below). Second, many words have multiple meanings, leading to false positives using only string-matching, as the IRD example above illustrates.  Third, different disciplines and journals use different standards for reporting.  For example, if we were interested in paleoecological information we would need to know that `paleoecology` and `palaeoecology` refer to similar concepts.  Similarly, `ice rafted debris` may also be referred to as `sand sized layers` in the marine context (Ruddiman, 1977).  Fourth, the context and placement of words matters.  For example, temporal information like ‘Holocene’ and ‘Pliocene’ may be found in the Methods, where they refer to marine core locations, or in the Discussion, where they might refer to global climate trends.
 
-Some potential pitfalls include
-  * OCR matching - commonly mistaken letters (O, Q, o)
-  * Age reporting variety (e.g., kyr vs. ka)
+Some potential pitfalls include:
+
+  * OCR matching - commonly mistaken letters (`O`, `Q`, `o`)
+  * Age reporting variety (e.g., `kyr` vs. `ka`)
+  * Age basis variety (^14^C, calibrated radiocarbon, wiggle matching)
   * GDD sentence construction
 
 Repeatedly reviewing matches at the sentence level and at the document level (i.e., “Why did this match or why didn't this paper return a match?”), then refining the workflow rule-sets accordingly, is critical to developing a clear workflow and high-value corpus. In many cases, beginning with very broad tests and slowly paring down to more precise tests is an appropriate pattern.  In this case, tools like RMarkdown are very helpful for interactive data exploration, using packages like `DT` and `leaflet` (Cheng et al., 2018; Xie et al., 2019).  We can assess the distribution of age-like elements within a paper and determine if they match with our initial expectations (e.g. "Why does *Debris fields in the Miocene* contain Holocene-aged matches?"; "Why does a paper about Korea report locations in Belize?").  Depending on the success of the algorithm, the tests can be revised and the process repeated until an acceptable match is found.
-
 
 ### Reproducible and Validated Workflows
 
@@ -229,7 +229,6 @@ short_table %>%
 
 ```
 
-
 ## 6.2 Extracting Spatial Coordinates
 
 We are interested in using GDD to obtain site coordinates for locations that contain IRD data spanning the last 5 million years.  The goal is to provide relevant site information for use in meta-analysis, or for comparing results to existing geographic locations from the relevant geocoded publications and then linking back to the publications using DOIs.
@@ -248,8 +247,8 @@ These regular expressions allow for negative or positive coordinate systems, tha
 The regex commands were constructed using capture (and non-capture) groups to work with the `stringr` package (Wickham and RStudio, 2019), so that we obtain five elements from any match, including the full match, the degrees, the minutes, the seconds (which may be an empty string), and the quadrant (NESW).
 
 ```{r, regex_apply}
-degmin <- str_match_all(nlp$word, dms_regex)
-decdeg <- str_match_all(nlp$word, dd_regex)
+degmin <- str_match_all(full_nlp$word, dms_regex)
+decdeg <- str_match_all(full_nlp$word, dd_regex)
 ```
 
 Since the documents are broken up into sentences we expect that all coordinates are reported as pairs, and so we are most interested in finding all the records that show up with pairs of coordinates.  We start by matching up the publications with sentences that have coordinate pairs:
@@ -259,21 +258,20 @@ Since the documents are broken up into sentences we expect that all coordinates 
 coord_pairs <- sapply(degmin, function(x)length(x) %% 2 == 0 & length(x) > 0) |
   sapply(decdeg, function(x)length(x) %% 2 == 0 & length(x) > 0)
 
-things <- nlp %>%
+things <- full_nlp %>%
   filter(coord_pairs) %>%
   inner_join(publications, by = "_gddid") %>%
-  select(`_gddid`, word, year, title) %>%
+  select('gddid' = `_gddid`, sentence, word, year, title) %>%
   mutate(word = gsub(',', ' ', word)) %>%
   mutate(word = str_replace_all(word, '-LRB-', '(')) %>%
   mutate(word = str_replace_all(word, '-RRB-', ')')) %>%
   mutate(word = str_replace_all(word, '" "', ','))
 
-things %>% select(-`_gddid`) %>% datatable
+things %>% select(-c('gddid', 'sentence')) %>% datatable
 
 ```
 
-Even here, we can see that many of these matches work, but that some of the matches are incomplete.  There appears to be a much lower proportion of sites returned than we might otherwise expect.  Given that there are `r length(unique(nlp$"_gddid"))` articles in the NLP dataset, it is surprising that only `r length(unique(things$"_gddid"))` appear to support regex matches to coordinate pairs.  We would expect that the description of sites or locations using coordinate pairs should be common practice. The observed outcome is likely to be, in part, an issue with the OCR/regex processing. A next iterative step would be to go over the potential matches more thoroughly to find additional methods of detecting the coordinate systems.
-
+Even here, we can see that many of these matches work, but that some of the matches are incomplete.  There appears to be a much lower proportion of sites returned than we might otherwise expect.  Given that there are `r length(unique(nlp$`_gddid`))` articles in the NLP dataset, it is surprising that only `r length(unique(things$gddid))` appear to support regex matches to coordinate pairs.  We would expect that the description of sites or locations using coordinate pairs should be common practice. The observed outcome is likely to be, in part, an issue with the OCR/regex processing. A next iterative step would be to go over the potential matches more thoroughly to find additional methods of detecting the coordinate systems.
 
 ## 6.3 Converting Coordinates
 
@@ -380,11 +378,7 @@ leaflet(coordinates_df) %>%
 
 **Figure 3**: *Leaflet map depicting sites that mention IRD and contain coordinate information and an IRD event. Each dot can be clicked to pull up: the title of the paper, the link to the publication, the sentence(s) containing spatial coordinates and other relevant IRD information. Out of the 150 papers in the test dataset, we found 11 papers with extractable spatial coordinates, comprising a total of 30 coordinate pairs (References included in leaflet map include: Baeten et al., 2014; Cofaigh et al., 2001; Ikehara and Itaki, 2007; Incarbona et al., 2008; Kaboth et al., 2016; Prokopenko et al., 2002; Rea et al., 2016; Rosell-Melé et al., 1997; Seki et al., 2005; Simon et al., 2013; Stoner et al., 1994).*
 
-![](images/fig4_density.png)
-
-**Figure 4**: *Relative location of ages and spatial coordinates reported in GDD documents (i.e., are ages or spatial coordinates generally located at the beginning, middle, or end of a paper?).*
-
-After cleaning and subsetting the corpus, we find 11 papers with 30 coordinate pairs out of 150 documents in the IRDDive test dataset (Fig. 3). This test suggests further improvements that can be made to the current methods.  First, in some cases, we find papers where IRD is simply referenced, and the paper does not report primary data. To circumvent this issue, we need to know where in these papers IRD is being mentioned. Targeting certain parts of the paper, like the Methods, might ensure we are only obtaining coordinates for IRD data (see Figure 4). Second, in some cases we find IRD but no coordinates or other core metadata; some papers simply do not contain coordinate information. Third, some papers mention IRD in the core data for continental cores (see Fig. 3 Central Asia location). These might possibly be valid instances of IRD in lacustrine deposits, or might represent papers that mention IRD without representing primary data. By removing documents that mention 'continental (place name)' these apparent false positives can be cleaned further. Another option is to cross-reference the returned IRD coordinates with the location of continents and remove coordinate pairs that fall within the continental boundaries. A fourth and last step would be to further refine the regex to obtain additional mentions of IRD, e.g. as 'IRD-rich layers', ‘IRD-rich deposits’, ‘Heinrich layers’, etc.
+After cleaning and subsetting the corpus, we find `r length(unique(coordinates_df$doi))` papers with `r nrow(coordinates_df)` coordinate pairs out of `r nrow(publications)` documents in the IRDDive test dataset (Fig. 3). This test suggests further improvements that can be made to the current methods.  First, in some cases, we find papers where IRD is simply referenced, and the paper does not report primary data. Second, in some cases we find IRD but no coordinates or other core metadata; some papers simply do not contain coordinate information. Third, some papers mention IRD in the core data for continental cores (see Fig. 3 Central Asia location). These might possibly be valid instances of IRD in lacustrine deposits [@smith2000diamictic], or might represent papers that mention IRD without representing primary data. By removing documents that mention 'continental (place name)' these apparent false positives can be cleaned further. Another option is to cross-reference the returned IRD coordinates with the location of continents and remove coordinate pairs that fall within the continental boundaries. A fourth and last step would be to further refine the regex to obtain additional mentions of IRD, e.g. as 'IRD-rich layers', ‘IRD-rich deposits’, ‘Heinrich layers’, etc.
 
 ## 6.4 Extracting ages and age ranges
 
@@ -404,32 +398,43 @@ For this, we can use the `browse()` function to look for different naming conven
 ```{r, eval=FALSE}
 
 is_date <- str_detect(nlp$word, ",BP,")
+is_range <- str_detect(nlp$word, "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
 
-nlp$word[is_date]
+date_range <- str_extract_all(full_nlp$word,
+                   "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>%
+              map(function(x) {
+                data.frame(range = paste(x, collapse = ";"),
+                           stringsAsFactors = FALSE)
+                }) %>%
+              bind_rows() %>%
+              mutate(gddid = full_nlp$`_gddid`,
+                     sentence = full_nlp$sentence)
 
-date_range <- str_detect(full_nlp$word,
-                   "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
+number <- str_extract_all(full_nlp$word,
+                          ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr.*?,") %>%
+              map(function(x) {
+                data.frame(year = paste(x, collapse = ";"),
+                           stringsAsFactors = FALSE)
+                }) %>%
+              bind_rows() %>%
+              mutate(gddid = full_nlp$`_gddid`,
+                     sentence = full_nlp$sentence) %>%
+              left_join(x = ., y = date_range,  by = c('gddid', 'sentence'))
 
-date_match <- str_match(full_nlp$word,
-                         "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>% na.omit()
+total_count <- number %>%
+  group_by(gddid) %>%
+  summarise(n = n()) %>%
+  left_join(x = ., y = number,  by = c('gddid')) %>%
+  mutate(paper_loc = sentence / n)
 
-browse(x = data.frame(gddid = x$`_gddid`[ird_word&!france],
-                      words = x$word[ird_word&!france]),
-       pubs = publications)
-
-number <- str_detect(full_nlp$word,
-                         ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr,")
 ```
 
-Output from pulling and cleaning dates using regex
+Output from pulling and cleaning dates using regex:
 
-| Age ranges          |
-| -----------         |
-| "76,to,62,kyr,BP,"  |
-| "6,--,6.4,kyr,BP,"  |
-| "6,to,3,kyr,BP,"    |
-| "11,--,10,kyr,BP,"  |
-| "6.0,--,6.7,kyr,BP,"|
+```{r dateRange}
+kable(date_range)
+```
+
 
 | Age captures     |
 | -----------      |
@@ -470,9 +475,40 @@ browse(x = data.frame(gddid = full_nlp$`_gddid`[number|date_range],
 
 ```
 
+## Further Cleaning and Document Metadata
+
+To circumvent this issue, we need to know where in these papers IRD is being mentioned.
+
+```{r}
+locations <- things %>%
+  select(gddid, word, sentence) %>%
+  left_join(x = total_count, y = ., by=c("gddid", "sentence")) %>%
+  mutate(year = ifelse(year == "", NA, year),
+         range = ifelse(range == "", NA, range),
+         interval = round(paper_loc, 2))  %>%
+  group_by(interval) %>%
+  summarise(age = sum(!is.na(year)),
+            age_range = sum(!is.na(range)),
+            coordinate = sum(!is.na(word))) %>%
+  tidyr::gather(match, count, -interval)
+
+  ggplot(locations, aes(x = interval, y = count, fill = match)) +
+    geom_smooth(aes(color = match), fill='gray') +
+    geom_bar(stat='identity', position = 'dodge', color = 'gray50') +
+    coord_cartesian(xlim=c(0,1), ylim=c(0, 17), expand = FALSE)
+
+```
+
+![](images/fig4_density.png)
+
+**Figure 4**: *Relative location of ages and spatial coordinates reported in GDD documents (i.e., are ages or spatial coordinates generally located at the beginning, middle, or end of a paper?).*
+
+Targeting certain parts of the paper, like the Methods, might ensure we are only obtaining coordinates for IRD data (see Figure 4).
+
+
 ##  7. Conclusions
 
-Here we have provided a model workflow to obtain coordinate and age information associated with IRD deposits, a GitHub Repository for open code development and sharing, and an R toolkit (github.com/EarthCubeGeochron/geodiveR).  The specific case study showcased here is designed to help researchers study the dynamics of ice sheets over the last 5 million years, while GeoDeepDive and the post-processing analytical workflows shown here will be helpful to those wanting to query for space and time information using GeoDeepDive. This will allow other researchers to import their own data from their own search logic, and output text and coordinates relevant to a researcher’s question. The GitHub Repository and R package can act as building blocks that serve researchers not only in the geosciences, but allied disciplines as well.
+Here we have provided a model workflow to obtain coordinate and age information associated with IRD deposits, a GitHub Repository for open code development and sharing, and an R toolkit ([http://github.com/EarthCubeGeochron/geodiveR]()).  The specific case study showcased here is designed to help researchers study the dynamics of ice sheets over the last 5 million years, while GeoDeepDive and the post-processing analytical workflows shown here will be helpful to those wanting to query for space and time information using GeoDeepDive. This will allow other researchers to import their own data from their own search logic, and output text and coordinates relevant to a researcher’s question. The GitHub Repository and R package can act as building blocks that serve researchers not only in the geosciences, but allied disciplines as well.
 
 ##  8. References
 
