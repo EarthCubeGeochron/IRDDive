@@ -9,8 +9,6 @@ output:
     keep_md: yes
     number_sections: no
     css: style/common.css
-  pdf_document:
-    latex_engine: pdflatex
   word_document:
     toc: yes
     toc_depth: '3'
@@ -268,7 +266,9 @@ wide_coords <- nlp %>%
   mutate(word = str_replace_all(word, '-RRB-', ')')) %>%
   mutate(word = str_replace_all(word, '" "', ','))
 
-wide_coords %>% select(-c('gddid', 'sentence')) %>% datatable
+wide_coords %>%
+  select(-c('gddid', 'sentence')) %>%
+  datatable(escape = FALSE, rownames = TRUE, options = list(dom='t'))
 
 ```
 
@@ -444,7 +444,7 @@ date_range %>%
   arrange(sample(1:nrow(date_range))) %>%
   filter(!range == "") %>%
   distinct(range, .keep_all=TRUE) %>%
-  datatable()
+  datatable(escape = FALSE, rownames = TRUE, options = list(dom='t'))
 ```
 **Table 1**. *A sample of recovered age ranges reported in the NLP corpus that is associated with IRD records based on regular expression captures.  The sentence number within a paper provides some indication of whether the age range is identifying broader global patterns of change (age ranges defined in the paper's Introduction), or elements specific to the current study.*
 
@@ -454,8 +454,7 @@ At this stage of the workflow, we only know that the ages identified are mention
 
 While the methods presented here do extract ages and geographic locations, it should be clear that this alone is not sufficient to fully understand process.  Additional data recovery is neccessary, however, it does provide a tool to pull in a broad range of information from the publication record.  It also allows us to detect patterns within papers themselves.  For example, the distribution of coordinates within papers shows a well defined pattern (Figure 4).  Coordinates are generally presented in the Abstract, Introduction or Methods section, but rarely elsewhere.  This differs from the distribution of ages and age ranges within papers.  Both appear throughout papers, although age ranges tend to be most frequent in the results, discussion and conclusions.  Both also appear in the titles of papers presented in the References section.  For this reason, any information about ages extracted from papers must also deal with information about the structure of the paper itself.
 
-```{r findSections, echo = FALSE}
-
+```{r ggplotAges, echo = FALSE, fig.width=6, dev='svg'}
 position <- total_count %>%
   mutate(abstract = str_detect(words, "Abstract"),
          methods = str_detect(words, "Methods"),
@@ -476,10 +475,6 @@ position <- total_count %>%
          xmax = mean + sd,
          ymin = seq(11.6, 9.2, length.out = 7),
          ymax = seq(11.6, 9.2, length.out = 7) + 0.2)
-
-```
-
-```{r ggplotAges, echo = FALSE}
 
 locations <- coordinates_df %>%
   mutate(sentence = as.numeric(sentence)) %>%
@@ -516,8 +511,6 @@ locations <- coordinates_df %>%
     ylab('Count in Corpus')
 
 ```
-
-![](images/fig4_density.png)
 
 **Figure 4**: *Relative location of ages and spatial coordinates reported in GDD documents (i.e., are ages or spatial coordinates generally located at the beginning, middle, or end of a paper?).  The line segments above represent the approximate position of the term "Abstract", "Methods", etc. in papers, not the extent of those terms.*
 
