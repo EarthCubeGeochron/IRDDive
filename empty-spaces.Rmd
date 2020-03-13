@@ -238,7 +238,7 @@ To obtain geographical coordinates from the paper we must consider several poten
 ```{r regex_degrees}
 dms_regex <- "[\\{,]([-]?[1]?[0-9]{1,2}?)(?:(?:,[°◦o],)|(?:[O])|(?:,`{2},))([1]?[0-9]{1,2}(?:.[0-9]*)),[′'`]?[,]?([[0-9]{0,2}]?)[\"]?[,]?([NESWnesw]?),"
 
- dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
+dd_regex <- "[\\{,][-]?[1]?[0-9]{1,2}\\.[0-9]{1,}[,]?[NESWnesw],"
 
 ```
 
@@ -247,8 +247,8 @@ These regular expressions allow for negative or positive coordinate systems, tha
 The regex commands were constructed using capture (and non-capture) groups to work with the `stringr` package (Wickham and RStudio, 2019), so that we obtain five elements from any match, including the full match, the degrees, the minutes, the seconds (which may be an empty string), and the quadrant (NESW).
 
 ```{r, regex_apply}
-degmin <- str_match_all(full_nlp$word, dms_regex)
-decdeg <- str_match_all(full_nlp$word, dd_regex)
+degmin <- str_match_all(nlp$word, dms_regex)
+decdeg <- str_match_all(nlp$word, dd_regex)
 ```
 
 Since the documents are broken up into sentences we expect that all coordinates are reported as pairs, and so we are most interested in finding all the records that show up with pairs of coordinates.  We start by matching up the publications with sentences that have coordinate pairs:
@@ -258,7 +258,7 @@ Since the documents are broken up into sentences we expect that all coordinates 
 coord_pairs <- sapply(degmin, function(x)length(x) %% 2 == 0 & length(x) > 0) |
   sapply(decdeg, function(x)length(x) %% 2 == 0 & length(x) > 0)
 
-things <- full_nlp %>%
+wide_coords <- nlp %>%
   filter(coord_pairs) %>%
   inner_join(publications, by = "_gddid") %>%
   select('gddid' = `_gddid`, sentence, word, year, title) %>%
@@ -267,11 +267,11 @@ things <- full_nlp %>%
   mutate(word = str_replace_all(word, '-RRB-', ')')) %>%
   mutate(word = str_replace_all(word, '" "', ','))
 
-things %>% select(-c('gddid', 'sentence')) %>% datatable
+wide_coords %>% select(-c('gddid', 'sentence')) %>% datatable
 
 ```
 
-Even here, we can see that many of these matches work, but that some of the matches are incomplete.  There appears to be a much lower proportion of sites returned than we might otherwise expect.  Given that there are `r length(unique(nlp$`_gddid`))` articles in the NLP dataset, it is surprising that only `r length(unique(things$gddid))` appear to support regex matches to coordinate pairs.  We would expect that the description of sites or locations using coordinate pairs should be common practice. The observed outcome is likely to be, in part, an issue with the OCR/regex processing. A next iterative step would be to go over the potential matches more thoroughly to find additional methods of detecting the coordinate systems.
+Even here, we can see that many of these matches work, but that some of the matches are incomplete.  There appears to be a much lower proportion of sites returned than we might otherwise expect.  Given that there are `r length(unique(nlp$"_gddid"))` articles in the NLP dataset with matches to IRD related terms, it is surprising that only `r length(unique(wide_coords$gddid))` appear to support regex matches to coordinate pairs.  We would expect that the description of sites or locations using coordinate pairs should be common practice. The observed outcome is likely to be, in part, an issue with the OCR/regex processing. A next iterative step would be to go over the potential matches more thoroughly to find additional methods of detecting the coordinate systems.
 
 ## 6.3 Converting Coordinates
 
@@ -294,11 +294,13 @@ convert_dec <- function(x, i) {
 
   publ <- match(nlp$`_gddid`[i], publications$`_gddid`)
 
-  point_pairs <- data.frame(sentence = nlp$word[i],
+  point_pairs <- data.frame(sentence = nlp$sentence[i],
+                            string = nlp$word[i],
                             lat = domain[str_detect(x, 'N') | str_detect(x, 'S')],
                             lng = domain[str_detect(x, 'E') | str_detect(x, 'W')],
                             publications[publ,],
-                            stringsAsFactors = FALSE)
+                            stringsAsFactors = FALSE) %>%
+                  rename(gddid = X_gddid)
 
   return(point_pairs)
 }
@@ -322,11 +324,13 @@ convert_dm <- function(x, i) {
 
   publ <- match(nlp$`_gddid`[i], publications$`_gddid`)
 
-  point_pairs <- data.frame(sentence = nlp$word[i],
+  point_pairs <- data.frame(sentence = nlp$sentence[i],
+                            string = nlp$word[i],
                             lat = domain[x[,5] %in% c('N', 'S')],
                             lng = domain[x[,5] %in% c('E', 'W')],
                             publications[publ,],
-                            stringsAsFactors = FALSE)
+                            stringsAsFactors = FALSE) %>%
+                  rename(gddid = X_gddid)
 
   return(point_pairs)
 }
@@ -371,7 +375,7 @@ leaflet(coordinates_df) %>%
                                   '<a href=https://doi.org/',
                                   coordinates_df$doi,'>Publication Link</a><br>',
                                   '<b>Sentence:</b><br>',
-                                  '<small>',gsub(',', ' ', coordinates_df$sentence),
+                                  '<small>',gsub(',', ' ', coordinates_df$string),
                                   '</small>'))
 
 ```
@@ -382,7 +386,7 @@ After cleaning and subsetting the corpus, we find `r length(unique(coordinates_d
 
 ## 6.4 Extracting ages and age ranges
 
-After the corpus of documents is cleaned and coordinates are obtained, we aimed to extract ages and age ranges that may be associated with IRD events. This requires building regex's that pull dates with many different naming conventions. For example, we need to consider:
+After the corpus of documents is cleaned and coordinates are obtained, we aimed to extract ages and age ranges that may be associated with IRD events. This requires building regular expressions that pull dates with many different naming conventions. For example, we need to consider:
 
 | Age reference |
 | -----------   |
@@ -393,32 +397,33 @@ After the corpus of documents is cleaned and coordinates are obtained, we aimed 
 | Ma BP         |
 | etc.          |
 
-For this, we can use the `browse()` function to look for different naming conventions and then start pulling ages and age ranges associated with them.
-
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 
 is_date <- str_detect(nlp$word, ",BP,")
 is_range <- str_detect(nlp$word, "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
 
-date_range <- str_extract_all(full_nlp$word,
+date_range <- str_extract_all(nlp$word,
                    "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>%
               map(function(x) {
                 data.frame(range = paste(x, collapse = ";"),
                            stringsAsFactors = FALSE)
                 }) %>%
               bind_rows() %>%
-              mutate(gddid = full_nlp$`_gddid`,
-                     sentence = full_nlp$sentence)
+              mutate(gddid = nlp$`_gddid`,
+                     sentence = nlp$sentence,
+                     words = nlp$word)
 
-number <- str_extract_all(full_nlp$word,
+# Extract the ranges within sentences.  If there are multiple ranges then
+# collapse them into a single string using a semi-colon.
+number <- str_extract_all(nlp$word,
                           ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr.*?,") %>%
               map(function(x) {
                 data.frame(year = paste(x, collapse = ";"),
                            stringsAsFactors = FALSE)
                 }) %>%
               bind_rows() %>%
-              mutate(gddid = full_nlp$`_gddid`,
-                     sentence = full_nlp$sentence) %>%
+              mutate(gddid = nlp$`_gddid`,
+                     sentence = nlp$sentence) %>%
               left_join(x = ., y = date_range,  by = c('gddid', 'sentence'))
 
 total_count <- number %>%
@@ -429,73 +434,41 @@ total_count <- number %>%
 
 ```
 
-Output from pulling and cleaning dates using regex:
+When we apply the code to the documents in the NLP corpus we begin to see patterns of dates. A limitation of the regular expression presented here is that the regular expression for the variable `is_range`, would only match `BP` ages prepended by a scale (a, ka, Ma), and not by calibrated years. `is_range` only allows one term between matched numbers and the string `BP`.  Thus more detailed methods would need to be used to capture all age types, and allowing us to directly compare ages across a common age-scale.  Ultimately, multiple matching terms are likely required to find the breadth of age terms.
 
 ```{r dateRange}
-kable(date_range)
+date_range %>%
+  arrange(sample(1:nrow(date_range))) %>%
+  filter(!range == "") %>%
+  distinct(range, .keep_all=TRUE) %>%
+  datatable()
 ```
+**Table 1**. *A sample of recovered age ranges reported in the NLP corpus that is associated with IRD records based on regular expression captures.  The sentence number within a paper provides some indication of whether the age range is identifying broader global patterns of change (age ranges defined in the paper's Introduction), or elements specific to the current study.*
 
-
-| Age captures     |
-| -----------      |
-| "76"  "to" "62"  |
-| "6"   "--" "6.4" |
-| "6"   "to" "3"   |
-| "11"  "--" "10"  |
-| "6.0" "--" "6.7" |
-
-| Date Label  |
-| ----------- |
-| "kyr,BP"    |
-| "kyr,BP"    |
-| "kyr,BP"    |
-| "kyr,BP"    |
-| "kyr,BP"    |
-
-At this stage of the workflow, we only know that these ages are mentioned in papers that also mention IRDs; we do not know if these ages are associated with specific IRD events.  Nonetheless, when we plot the data, we observe clusters that are consistent with IRD distributions found in the primary literature but with some notable exceptions (e.g., over land). We have successfully identified instances of dates in the papers where there are references to IRD (Table 1) and we can, as a next step, begin to match the dates to specific units.
-
-**Table 1**. *Examples of extracted ages from sentences within IRD papers.*
-```{r datetable, echo=FALSE}
-
-is_date <- str_detect(nlp$word, ",BP,")
-
-date_range <- str_detect(full_nlp$word,
-                   "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),")
-
-date_match <- str_match(full_nlp$word,
-                         "(\\d+(?:[.]\\d+)*),((?:-{1,2})|(?:to)),(\\d+(?:[.]\\d+)*),([a-zA-Z]+,BP),") %>% na.omit()
-
-
-number <- str_detect(full_nlp$word,
-                        ",(\\d+(?:[\\.\\s]\\d+){0,1}),.*?,yr,")
-
-browse(x = data.frame(gddid = full_nlp$`_gddid`[number|date_range],
-                                words = full_nlp$word[number|date_range]),
-                 pubs = publications)
-
-```
+At this stage of the workflow, we only know that the ages identified are mentioned in papers that also mention IRDs; we do not know if these ages are associated with specific IRD events.  Nonetheless, when we plot the data, we observe clusters that are consistent with IRD distributions found in the primary literature but with some notable exceptions (e.g., over land). We have successfully identified instances of dates in the papers where there are references to IRD (Table 1) and we can, as a next step, begin to match the dates to specific units.
 
 ## Further Cleaning and Document Metadata
 
-To circumvent this issue, we need to know where in these papers IRD is being mentioned.
+
 
 ```{r}
-locations <- things %>%
-  select(gddid, word, sentence) %>%
-  left_join(x = total_count, y = ., by=c("gddid", "sentence")) %>%
+locations <- total_count %>%
+  select(gddid, words, sentence) %>%
+  left_join(x = coordinates_df, y = ., by=c("gddid", "sentence")) %>%
   mutate(year = ifelse(year == "", NA, year),
          range = ifelse(range == "", NA, range),
          interval = round(paper_loc, 2))  %>%
   group_by(interval) %>%
   summarise(age = sum(!is.na(year)),
             age_range = sum(!is.na(range)),
-            coordinate = sum(!is.na(word))) %>%
+            coordinate = sum(!is.na(words))) %>%
   tidyr::gather(match, count, -interval)
 
   ggplot(locations, aes(x = interval, y = count, fill = match)) +
     geom_smooth(aes(color = match), fill='gray') +
     geom_bar(stat='identity', position = 'dodge', color = 'gray50') +
-    coord_cartesian(xlim=c(0,1), ylim=c(0, 17), expand = FALSE)
+    coord_cartesian(xlim=c(0,1), ylim=c(0, 17), expand = FALSE) +
+    theme_bw()
 
 ```
 
