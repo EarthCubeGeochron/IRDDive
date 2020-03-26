@@ -499,25 +499,30 @@ Of course, while the methods presented here do extract ages and geographic locat
 
 ```{r ggplotAges, echo = FALSE, fig.width=6, dev='svg'}
 position <- total_count %>%
-  mutate(abstract = str_detect(words, "Abstract"),
-         methods = str_detect(words, "Methods"),
-         refs = str_detect(words, "References"),
-         disc = str_detect(words, "Discussion"),
-         concl = str_detect(words, "Conclusion"),
-         intro = str_detect(words, "Introduction"),
-         results = str_detect(words, "Results")) %>%
-  mutate(abstract = ifelse(abstract == FALSE | (abstract == TRUE & paper_loc > 0.5), FALSE, TRUE)) %>%
-  select(-gddid, -sentence, -age, -range) %>%
-  tidyr::pivot_longer(-c("paper_loc", "words")) %>%
+  mutate(abstract = str_detect(words, "Abstract,([A-Z]|\\.\\})"),
+         methods = str_detect(words, "Methods,([A-Z]|\\.\\})"),
+         refs = str_detect(words, "References,([A-Z]|\\.\\})"),
+         disc = str_detect(words, "Discussion,([A-Z]|\\.\\})"),
+         concl = str_detect(words, "Conclusion,([A-Z]|\\.\\})"),
+         intro = str_detect(words, "Introduction,([A-Z]|\\.\\})"),
+         results = str_detect(words, "Results,([A-Z]|\\.\\})")) %>%
+  select(-sentence, -age, -range) %>%
+  tidyr::pivot_longer(-c("paper_loc", "words", "gddid")) %>%
   filter(value == TRUE) %>%
+  mutate(ranker = match(name, c('abstract', 'intro', 'methods', 'results', 'disc', 'concl', 'refs'))) %>%
+  group_by(gddid) %>%
+  mutate(order = sort(ranker)) %>%
+  filter(order <= ranker) %>%
+  select(c(-order, ranker)) %>%
   group_by(name) %>%
   summarise(mean = mean(paper_loc),
             sd = sd(paper_loc)) %>%
   arrange(mean) %>%
   mutate(xmin = ifelse((mean - sd) < 0, 0, mean - sd),
          xmax = mean + sd,
-         ymin = seq(11.6, 9.2, length.out = 7),
-         ymax = seq(11.6, 9.2, length.out = 7) + 0.2)
+         ymin = seq(14.8, 12.2, length.out = 7),
+         ymax = seq(14.8, 12.2, length.out = 7) + 0.2) %>%
+  mutate(name=factor(name, levels=c('abstract', 'intro', 'methods', 'results', 'disc', 'concl', 'refs')))
 
 locations <- coordinates_df %>%
   mutate(sentence = as.numeric(sentence)) %>%
@@ -526,32 +531,41 @@ locations <- coordinates_df %>%
             y = ., by=c("gddid", "sentence")) %>%
   mutate(age = ifelse(age == "", NA, age),
          range = ifelse(range == "", NA, range),
-         interval = round(paper_loc * 50, 0) / 50)  %>%
+         interval = round(paper_loc * 25, 0) / 25)  %>%
   group_by(interval) %>%
   summarise(age = sum(!is.na(age)),
             age_range = sum(!is.na(range)),
             coordinate = sum(!is.na(year))) %>%
-  tidyr::gather(match, count, -interval)
+  tidyr::gather(match, counts, -interval)
+
+
+library(mgcv)
 
   ggplot() +
-    geom_smooth(data = locations,
-                aes(x = interval, y = count, fill = match, color = match),
-
-                fill='gray') +
-    geom_bar(data = locations,
-             aes(x = interval, y = count, fill = match),
-             stat='identity', position = 'dodge', color = 'gray50') +
-    viridis::scale_color_viridis('Regex Match', discrete = TRUE) +
-    viridis::scale_fill_viridis('Regex Match', discrete = TRUE) +
-    ggnewscale::new_scale("fill") +
-    geom_rect(data = position,
-              aes(fill = name, xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax),
-            color = 'gray50') +
-    scale_fill_brewer('Paper Element', type = 'qual') +
-    coord_cartesian(xlim=c(0,1), ylim=c(0, 12), expand = FALSE) +
-    ggthemes::theme_tufte() +
-    xlab('Position in Paper (0 - 1)') +
-    ylab('Count in Corpus')
+  geom_bar(data = locations,
+           aes(x = interval, y = counts, fill = match),
+           stat='identity', color = 'gray50',
+           orientation='x', alpha = 0.3,
+           position='dodge') +
+  geom_smooth(data = locations,
+    aes(x = interval, y = counts, color = match),
+    size=2, se=FALSE,
+    method='gam', method.args = list(family = "poisson"), formula=y~s(x, k = 5)) +
+  viridis::scale_color_viridis('Regex Match', discrete = TRUE) +
+  viridis::scale_fill_viridis('Regex Match', discrete = TRUE) +
+  ggnewscale::new_scale("fill") +
+  geom_rect(data = position,
+    aes(fill = name, xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax),
+    color = 'gray50') +
+  scale_fill_brewer('Paper Element', type = 'qual') +
+  coord_cartesian(xlim=c(0,1), ylim=c(0, 15), expand = FALSE) +
+  ggthemes::theme_tufte() +
+  xlab('Position in Paper (start: 0; end: 1)') +
+  ylab('Count in Corpus') +
+  theme(axis.title.x=element_text(size=18, face="bold.italic"),
+        axis.title.y=element_text(size=18, face="bold.italic"),
+        axis.text.x=element_text(size=14, face="bold"),
+        axis.text.y=element_text(size=14, face="bold"))
 
 ```
 
