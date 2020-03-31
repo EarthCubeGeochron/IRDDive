@@ -12,6 +12,9 @@ BugReports: https://github.com/EarthCubeGeochron/IRDDive/issues
 Depends:
     R (>= 3.0)
 Imports:
+
+Suggests:
+  rmarkdown
   purrr
   ggplot2
   mgcv
@@ -24,7 +27,5 @@ Imports:
   devtools
   DT
   leaflet
-Suggests:
-  rmarkdown
 
 RoxygenNote: 5.0.1
