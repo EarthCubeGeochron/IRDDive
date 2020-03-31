@@ -167,6 +167,7 @@ With this workflow overview we now have mapped out an iterative process that is 
 To begin, we load the packages that will be used, and then import the data:
 
 ```{r hide_devtools, results='hide', message=FALSE, echo=FALSE, warning=FALSE}
+library(devtools)
 devtools::install_github('EarthCubeGeochron/geodiveR')
 ```
 
@@ -182,6 +183,9 @@ library(leaflet)
 library(purrr)
 library(DT)
 library(assertthat)
+library(mgcv)
+library(flextable)
+library(ggthemes)
 
 sourcing <- list.files('R', pattern = ".R$", full.names = TRUE) %>%
   map(source, echo = FALSE, print = FALSE, verbose = FALSE)
@@ -556,9 +560,6 @@ locations <- coordinates_df %>%
             age_range = sum(!is.na(range)),
             coordinate = sum(!is.na(year))) %>%
   tidyr::gather(match, counts, -interval)
-
-
-library(mgcv)
 
 plotter <-  ggplot() +
   geom_bar(data = locations,
