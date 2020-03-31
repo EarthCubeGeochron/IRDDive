@@ -1,0 +1,30 @@
+Title: Ice-rafted debris and regex in GeoDeepDive
+Version: 0.1
+Date: 2019-03-31
+Author: Simon J. Goring [aut, cre]
+Authors@R: person(given = c("Simon", "J."), family = "Goring",
+    role = c("aut", "cre"), email = "goring@wisc.edu"))
+Maintainer: Simon J. Goring <goring@wisc.edu>
+Description: A paper in revision about the use of GeoDeepDive for coordinate detection.
+License: MIT + file LICENSE
+URL: https://github.com/EarthCubeGeochron/IRDDive
+BugReports: https://github.com/EarthCubeGeochron/IRDDive/issues
+Depends:
+    R (>= 3.0)
+Imports:
+  rmarkdown
+  purrr
+  ggplot2
+  mgcv
+  viridis
+  dplyr
+  readr
+  jsonlite
+  stringr
+  assertthat
+  devtools
+  DT
+  leaflet
+Suggests:
+
+RoxygenNote: 5.0.1
