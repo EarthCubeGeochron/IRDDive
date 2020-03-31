@@ -186,7 +186,25 @@ library(assertthat)
 
 sourcing <- list.files('R', pattern = ".R$", full.names = TRUE) %>%
   map(source, echo = FALSE, print = FALSE, verbose = FALSE)
-#
+
+publications <- fromJSON(txt = 'input/IRD/bibjson', flatten = TRUE)
+
+if(!file.exists('input/IRD/sentences_nlp352.tsv')){
+  data(nlp)
+  full_nlp <- nlp
+  rm(nlp)
+  colnames(full_nlp) <- c('_gddid', 'sentence', 'wordIndex',
+                          'word', 'partofspeech', 'specialclass',
+                          'wordsAgain', 'wordtype', 'wordmodified')
+} else {
+
+  full_nlp <- readr::read_tsv('input/IRD/sentences_nlp352.tsv',
+                         trim_ws = TRUE,
+                         col_names = c('_gddid', 'sentence', 'wordIndex',
+                                       'word', 'partofspeech', 'specialclass',
+                                       'wordsAgain', 'wordtype', 'wordmodified'))
+}
+
 # db_con <- list(host = "localhost",
 #                port = 5432,
 #                user = "postgres",
