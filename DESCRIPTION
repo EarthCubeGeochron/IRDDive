@@ -12,23 +12,21 @@ BugReports: https://github.com/EarthCubeGeochron/IRDDive/issues
 Depends:
     R (>= 3.0)
 Imports:
-  rmarkdown
-  purrr
-  ggplot2
-  mgcv
-  viridis
-  dplyr
-  readr
-  jsonlite
-  stringr
-  assertthat
-  devtools
-  DT
-  leaflet
-  flextable
+  purrr,
+  ggplot2,
+  mgcv,
+  viridis,
+  dplyr,
+  readr,
+  jsonlite,
+  stringr,
+  assertthat,
+  devtools,
+  DT,
+  leaflet,
+  flextable,
   ggthemes
 Suggests:
   rmarkdown
-  purrr
 
 RoxygenNote: 5.0.1
