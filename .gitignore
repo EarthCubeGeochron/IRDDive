@@ -3,9 +3,7 @@
 .Rapp.history
 # Session Data files
 .RData
-<<<<<<< HEAD
 .Rproj
-=======
 IRDDive.Rproj
 input/sentences_nlp352
 .DS_store
@@ -29,3 +27,6 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
+
+input/IRD.zip
+input/IRD/*
