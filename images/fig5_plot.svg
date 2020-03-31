@@ -11,7 +11,10 @@
    version="1.1"
    id="svg1596"
    sodipodi:docname="fig5_plot.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:export-filename="/mnt/sda1/simon/Documents/GitHub/IRDDive/images/fig5_plot.png"
+   inkscape:export-xdpi="239.25999"
+   inkscape:export-ydpi="239.25999">
   <metadata
      id="metadata1600">
     <rdf:RDF>
@@ -20,7 +23,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -33,15 +36,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1366"
-     inkscape:window-height="731"
+     inkscape:window-width="1853"
+     inkscape:window-height="1016"
      id="namedview1598"
      showgrid="false"
      inkscape:zoom="1.4940476"
      inkscape:cx="252.14118"
      inkscape:cy="180.63578"
-     inkscape:window-x="0"
-     inkscape:window-y="1080"
+     inkscape:window-x="67"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1596" />
   <defs
