@@ -6,7 +6,7 @@
 #' @export
 #' @import assertthat
 
-clean_corpus <- function(con) {
+clean_corpus <- function(x, pubs) {
 
   ## Assertions:
   # Expects the deep dive corpus:

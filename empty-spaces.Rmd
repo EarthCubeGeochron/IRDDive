@@ -172,24 +172,22 @@ devtools::install_github('EarthCubeGeochron/geodiveR')
 
 ```{r load_data, message=FALSE, warning = FALSE}
 
-library(RPostgreSQL)
 library(geodiveR)
 library(ggplot2)
-library(jsonlite) # (Ooms et al., 2018)
-library(readr) # (Wickham et al., 2018)
-library(dplyr) # (Wickham et al., 2019)
+library(jsonlite)
+library(readr)
+library(dplyr)
 library(stringr)
 library(leaflet)
-library(purrr) # (Henry et al., 2019)
+library(purrr)
 library(DT)
 library(assertthat)
 
 sourcing <- list.files('R', pattern = ".R$", full.names = TRUE) %>%
   map(source, echo = FALSE, print = FALSE, verbose = FALSE)
+publications <- fromJSON(txt = 'input/bibjson', flatten = TRUE)
 
-publications <- fromJSON(txt = 'input/IRD/bibjson', flatten = TRUE)
-
-if(!file.exists('input/IRD/sentences_nlp352.tsv')){
+if(!file.exists('input/sentences_nlp352')){
   data(nlp)
   full_nlp <- nlp
   rm(nlp)
@@ -197,40 +195,14 @@ if(!file.exists('input/IRD/sentences_nlp352.tsv')){
                           'word', 'partofspeech', 'specialclass',
                           'wordsAgain', 'wordtype', 'wordmodified')
 } else {
-
-  full_nlp <- readr::read_tsv('input/IRD/sentences_nlp352.tsv',
+  full_nlp <- readr::read_tsv('input/sentences_nlp352',
                          trim_ws = TRUE,
                          col_names = c('_gddid', 'sentence', 'wordIndex',
                                        'word', 'partofspeech', 'specialclass',
                                        'wordsAgain', 'wordtype', 'wordmodified'))
 }
 
-# db_con <- list(host = "localhost",
-#                port = 5432,
-#                user = "postgres",
-#                password = "postgres",
-#                database = "gdd")
-#
-# con <- dbConnect(PostgreSQL(),
-#                  user = db_con$user,
-#                  password = db_con$user,
-#                  host = db_con$host,
-#                  port = db_con$port,
-#                  dbname = db_con$database)
-#
-# load_dd(con,
-#         bib = 'input/IRD/bibjson',
-#         sent = 'input/IRD/sentences_nlp352.tsv')
-
-publications <- jsonlite::fromJSON('input/bibjson')
-
-
-#  uses the clean_corpus.R function within geodiveR
-#  (implements the IRD search-and-refinement rules mentioned
-#   above in 'Exploratory Iteration')
-
 nlp_clean <- clean_corpus(x = full_nlp, pubs = publications)
-
 nlp <- nlp_clean$nlp
 
 ```
@@ -634,3 +606,5 @@ Funding for this research was provided by the National Science Foundation (#EAR-
 
 ##  Author Contributions
 All authors contributed to study design. J.M., S.Y., and S.J.G. performed analysis and developed the GitHub repository and R package. J.M., S.J.G., and S.A.M. wrote the paper with input from the rest of the authors.
+
+## References
