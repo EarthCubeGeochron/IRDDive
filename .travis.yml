@@ -16,6 +16,8 @@ r_packages:
   - devtools
   - DT
   - leaflet
+  - flextable
+  - ggthemes
 os:
   - linux
   - osx
