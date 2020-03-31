@@ -1,0 +1,21 @@
+language: r
+sudo: false
+script: make build
+cache: packages
+r_packages:
+  - rmarkdown
+  - purrr
+  - ggplot2
+  - mgcv
+  - viridis
+  - dplyr
+  - readr
+  - jsonlite
+  - stringr
+  - assertthat
+  - devtools
+  - DT
+  - leaflet
+os:
+  - linux
+  - osx
