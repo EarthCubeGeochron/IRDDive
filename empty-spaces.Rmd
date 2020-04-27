@@ -25,7 +25,7 @@ dev: svg
 highlight: tango
 bibliography: style/references.bib
 csl: style/elsevier-harvard.csl
-abstract: Machine learning technology promises a more efficient and scalable approach to locating and aggregating data and information from the burgeoning scientific literature. Realizing this promise requires provision of applications, data resources, and the documentation of analytic workflows. GeoDeepDive provides a digital library comprising over 11 million peer-reviewed documents and the computing infrastructure upon which to build and deploy search and text-extraction capabilities using regular expressions and natural language processing. Here we present a model GeoDeepDive workflow and accompanying R package to extract spatiotemporal information about site-level records in the geoscientific literature.  We apply these capabilities in a case study to generate a preliminary distribution of ice-rafted debris (IRD) records in both space and time. We use regular expressions and natural language-processing utilities to extract and plot reliable latitude-longitude pairs from publications containing IRD, and extract age estimates from those publications. This workflow and R package provides researchers from the geosciences and allied disciplines a general set of tools for querying spatiotemporal information from GeoDeepDive for their own science questions.
+abstract: Machine learning technology promises a more efficient and scalable approach to locating and aggregating data and information from the burgeoning scientific literature. Realizing this promise requires provision of applications, data resources, and the documentation of analytic workflows. GeoDeepDive provides a digital library comprising over 11 million peer-reviewed documents and the computing infrastructure upon which to build and deploy search and text-extraction capabilities using regular expressions and natural language processing. Here we present a model GeoDeepDive workflow and accompanying R package to extract spatiotemporal information about site-level records in the geoscientific literature.  We apply these capabilities in a case study to generate a preliminary distribution of ice-rafted debris (IRD) records in both space and time. We use regular expressions and natural language-processing utilities to extract and plot reliable latitude-longitude pairs from publications containing IRD, and also extract age estimates from those publications. This workflow and R package provides researchers from the geosciences and allied disciplines a general set of tools for querying spatiotemporal information from GeoDeepDive for their own science questions.
 keywords: Text and data mining, Pliocene, Pleistocene, ice-rafted debris
 ---
 
@@ -42,7 +42,7 @@ docType <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 
 Peer-reviewed papers communicate knowledge to their audiences through figures, text and tables. These elements have been refined over generations to efficiently communicate scientific insight to human readers, but the volume and variety of the peer-reviewed literature has challenged meta-analysis and efficient extraction of the underlying primary data. Efforts to improve the practice of data archiving in structured, sustainable data repositories  are increasing [@sansone2019fairsharing] as individuals and groups recognize the importance of data sharing and curation [@pagesSteering]. Despite these efforts, however, a large volume of data and information still exists exclusively in published form as text within manuscripts, embedded in tables, or graphically within figures. In response, new automated software tools are being developed to extract information directly from the scientific literature. Various fields are developing tools for automated extraction of meaningful information from the scientific literature, including natural language processing (NLP) and other forms of machine learning (ML), the vast majority of which are being developed and deployed to extract information from general and freely available content, like Twitter feeds and publication abstracts. The development of these new software tools has rapidly outpaced their application in the geosciences, which could allow the evaluation of digital libraries and infrastructures which address questions at scales not available to traditional meta-analyses.
 
-GeoDeepDive ([http://geodeepdive.org]())  is a digital library and computing system that currently contains over 11 million publications from multiple commercial and open-access content providers. Early versions of GeoDeepDive have been used to extract fossil occurrences from the scientific literature [@peters2014machine], e.g. to  better understand the temporal patterns and possible drivers of stromatolite resurgences in the geological past [@peters2017rise]. However, the newness of GeoDeepDive as a platform and the few available software tools to leverage it has limited its impact. Here we provide a sample workflow and accompanying R package that leads the reader through key, public elements of GeoDeepDive.  As a case study, we retrieve documents on the distribution of ice-rafted debris (IRD) from the Pliocene to present and extract both geographic coordinates and temporal information. We choose to focus our effort on IRD because of the near uniqueness of the acronym in the geoscience literature and because IRD is almost exclusively restricted to ocean settings, thus simplifying identification of false positives – occurrences of IRD that do not refer to ice-rafted debris – in the training dataset. IRD distribution in marine sediments provides a key constraint on cryosphere development, yielding insight into past climate evolution [*e.g.*, @hemming2004heinrich;@ruddiman_late_1977;@andrews_abrupt_1998;@heinrich1988origin;@bond_iceberg_1995;@clark_mechanisms_2007;@marcott_ice-shelf_2011;@alvarez-solas_links_2010;@barker_icebergs_2015;@bassis_heinrich_2017].
+GeoDeepDive ([http://geodeepdive.org]())  is a digital library and computing system that currently contains over 11 million publications from multiple commercial and open-access content providers. Early versions of GeoDeepDive have been used to extract fossil occurrences from the scientific literature [@peters2014machine], e.g. to  better understand the temporal patterns and possible drivers of stromatolite resurgences in the geological past [@peters2017rise]. However, the newness of GeoDeepDive as a platform and the few available software tools to leverage it has limited its impact [@marsicek2018automated]. Here we provide a sample workflow and accompanying R package that leads the reader through key, public elements of GeoDeepDive.  As a case study, we retrieve documents on the distribution of ice-rafted debris (IRD) from the Pliocene to present and extract both geographic coordinates and temporal information. We choose to focus our effort on IRD because of the near uniqueness of the acronym in the geoscience literature and because IRD is almost exclusively restricted to ocean settings, thus simplifying identification of false positives – occurrences of IRD that do not refer to ice-rafted debris – in the training dataset. IRD distribution in marine sediments provides a key constraint on cryosphere development, yielding insight into past climate evolution [*e.g.*, @hemming2004heinrich;@ruddiman_late_1977;@andrews_abrupt_1998;@heinrich1988origin;@bond_iceberg_1995;@clark_mechanisms_2007;@marcott_ice-shelf_2011;@alvarez-solas_links_2010;@barker_icebergs_2015;@bassis_heinrich_2017].
 
 One implementation of GeoDeepDive uses sentences as the atomic unit, managing the sentence-level data within a PostgreSQL database. Each sentence within a paper is identified by 1) a unique document id (GDDID, or `gddid` in the accompanying code; an internally unique identifier to accommodate publications that may or may not have their own formal digital object identifier [DOI]) and 2) a sentence number that is assigned and unique within the paper. A separate table relates GDDIDs to publication metadata (e.g. title, journal, authors, etc.). Hence, GeoDeepDive workflows and their individual steps effectively operate at two distinct levels: sentence and document-level. Because GeoDeepDive (GDD) also provides unique IDs for each journal and links these to the sentence IDs, journal-level analytics are possible. GDD makes use of Stanford NLP [@manning2014stanford], so it is also possible to obtain word-level analysis using indexing within sentences. For this paper, we focus on "sentence"- and "document"-level analytics, because of our focus on extracting geospatial and temporal information for individual records.
 
@@ -308,7 +308,7 @@ Even here, we can see that many of these matches work, but that some of the matc
 
 ### Converting Coordinates
 
-Given the geographic coordinate strings, we need to be able to transform them to reliable latitude and longitude pairs with sufficient confidence to actually map the records.  These two functions convert the GeoDeepDive (GDD) word elements pulled out by the regular expression searches into decimal degrees that can account for reported locations.
+Given the geographic coordinate strings, we need to be able to transform them to reliable latitude and longitude pairs with sufficient confidence to actually map the records.  These two functions convert the GeoDeepDive (GDD) word elements pulled out by the regular expression searches into decimal degrees that can account for reported location and be applied to a map, to look at described and extracted locations.
 
 ```{r, extract_coords}
 
@@ -368,12 +368,6 @@ convert_dm <- function(x, i) {
   return(point_pairs)
 }
 
-```
-
-Once we are done converting coordinate strings to reliable latitude and longitude pairs, we need to apply those functions to the set of records we've extracted to build a composite table:
-
-```{r leaflet_plot}
-
 coordinates <- list()
 coord_idx <- 1
 
@@ -402,18 +396,43 @@ coordinates_df <- coordinates %>% bind_rows %>%
 
 coordinates_df$doi <- coordinates_df$identifier %>% map(function(x) x$id) %>% unlist
 
-leaflet(coordinates_df) %>%
-  addProviderTiles(providers$Esri.WorldImagery) %>%
-  addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
-                                  '<a href=https://doi.org/',
-                                  coordinates_df$doi,'>Publication Link</a><br>',
-                                  '<b>Sentence:</b><br>',
-                                  '<small>',gsub(',', ' ', coordinates_df$string),
-                                  '</small>'))
+```
+```{r leaflet_plot, echo=FALSE}
+
+if (docType == 'docx') {
+  library("rnaturalearth")
+  library("rnaturalearthdata")
+  world <- ne_countries(scale = "medium", returnclass = "sf")
+
+  outplot = ggplot(data = world) +
+    geom_sf(fill="#a9a9a9", color="#2b2d2faa") +
+    geom_point(data = coordinates_df, aes(x = lng, y = lat)) +
+    theme_tufte() +
+    xlab('') +
+    ylab('') +
+    coord_sf(xlim=c(-100,150), ylim=c(-80,77)) +
+    theme(
+      panel.border = element_rect(colour = "black", fill=NA, size=1)
+    )
+
+  ggsave(outplot, file="images/mapplot.svg")
+  outplot
+
+} else {
+  leaflet(coordinates_df) %>%
+    addProviderTiles(providers$Esri.WorldImagery) %>%
+    addCircleMarkers(popup = paste0('<b>', coordinates_df$title, '</b><br>',
+                                    '<a href=https://doi.org/',
+                                    coordinates_df$doi,'>Publication Link</a><br>',
+                                    '<b>Sentence:</b><br>',
+                                    '<small>',
+                                    gsub(',', ' ', coordinates_df$string),
+                                    '</small>'))
+}
 
 ```
 
-**Figure 3**: *Leaflet map depicting sites that mention IRD and contain coordinate information and an IRD event. Each dot can be clicked to pull up: the title of the paper, the link to the publication, the sentence(s) containing spatial coordinates and other relevant IRD information. Out of the 150 papers in the test dataset, we found 11 papers with extractable spatial coordinates, comprising a total of 30 coordinate pairs (References included in leaflet map include: [@baeten2014origin;@cofaigh2001late;@stoner1994high;@simon2013millennial;@seki2005decreased;@rosell1997biomarker;@rea2016magnetic;@prokopenko2002stability;@kaboth2016new;@ikehara2007millennial;@incarbona2008holocene].*
+**Figure 3**: *Map depicting sites that mention IRD and contain coordinate information and an IRD event. Each dot can be clicked to pull up: the title of the paper, the link to the publication, the sentence(s) containing spatial coordinates and other relevant IRD information. Out of the 150 papers in the test dataset, we found 11 papers with extractable spatial coordinates, comprising a total of 30 coordinate pairs (References included in leaflet map include: [@baeten2014origin;@cofaigh2001late;@stoner1994high;@simon2013millennial;@seki2005decreased;@rosell1997biomarker;@rea2016magnetic;@prokopenko2002stability;@kaboth2016new;@ikehara2007millennial;@incarbona2008holocene].*
 
 After cleaning and subsetting the corpus, we find `r length(unique(coordinates_df$doi))` papers with `r nrow(coordinates_df)` coordinate pairs out of `r nrow(publications)` documents in the IRDDive test dataset (Figure 3). This test suggests further improvements that can be made to the current methods.  First, in some cases, we find papers where IRD is simply referenced, and the paper does not report primary data. Second, in some cases we find IRD but no coordinates or other core metadata; some papers simply do not contain coordinate information. Third, some papers mention IRD in the core data for continental cores (see Fig. 3 Central Asia location). These might possibly be valid instances of IRD in lacustrine deposits [@smith2000diamictic], or might represent papers that mention IRD without representing primary data. One solution would be to cross-reference the returned IRD coordinates with the location of continents (past or present) and remove coordinate pairs that fall within the continental boundaries. A fourth and last step would be to further refine the regex to obtain additional mentions of IRD, e.g. as 'IRD-rich layers', 'IRD-rich deposits', 'Heinrich layers', etc.
 
@@ -460,7 +479,7 @@ total_count <- number %>%
   select(gddid, sentence, age, range, words, paper_loc)
 ```
 
-When we apply the code to the documents in the IRD corpus we begin to see patterns of dates (Table 3). A limitation of the regular expression presented here is that the regular expression for the variable `is_range`, would only match `BP` ages prepended by a scale (a, ka, Ma). As currently defined, `is_range` only allows one term between matched numbers and the string `BP`.  Thus more detailed methods would need to be used to capture all age descriptors and types.  Ultimately, multiple matching terms are likely required to find the breadth of age terms.
+When we apply the code to the documents in the IRD corpus we begin to see patterns of dates (Table 3). A limitation of the regular expression presented here is that the regular expression for the variable `is_range`, would only match `BP` ages prepended by a scale (a, ka, Ma). As currently defined, `is_range` only allows one term between matched numbers and the string `BP`.  Thus more detailed methods would need to be used to capture all age descriptors and types.  Ultimately, multiple matching terms are likely required to find the breadth of age terms.  In this simple example, we see that extracted date ranges capture only late-Pleistocene dates (Figure 4; most < 40ka BP), and, an examination of the sentences containing the described ranges show that a large number of them refer to specific periods within the Pleistocene or Holocene ("Early Holocene wet period", "HS1", "Mid-Holocene"), which explains, in part, the high number of ranges that describe bounding ages, for example, the time around the beginning of the Holocene and the end of the Younger Dryas which may be double counted, resulting in the spike in references for the 11.0-11.5 ka BP in Figure 4.  The lack of Pleistocene IRD references in the corpus is likely a result of an under-representation in our smaller sample of the dataset, rather than an issue with the method as described.
 
 ```{r dateRange, echo=FALSE}
 
@@ -482,9 +501,10 @@ if(docType == 'docx') {
 ```
 **Table 3**. *A sample of recovered age ranges reported in the NLP corpus that is associated with IRD records based on regular expression captures.  The sentence number within a paper provides some indication of whether the age range is identifying broader global patterns of change (age ranges defined in the paper's Introduction), or elements specific to the current study.*
 
-At this stage of the workflow, we have successfully identified instances of dates in the papers where there are references to IRD (Table 1), but we do not know if these ages are associated with specific IRD events. Nonetheless, when we map the data (Figure 3), we observe clusters that are consistent with IRD distributions found in the primary literature but with some notable exceptions (e.g., over land). A next step would be to begin to match the dates to specific units.
+At this stage of the workflow, we have successfully identified instances of dates in the papers where there are references to IRD (Table 1), but we do not know if these ages are associated with specific IRD events.  Nonetheless, when we map the data (Figure 3), we observe clusters that are consistent with IRD distributions found in the primary literature but with some notable exceptions (e.g., over land). A next step would be to begin to match the dates to specific units.
 
 ```{r, rangePlot, echo = FALSE, fig.width=6, dev='svg'}
+
 rangeseq <- total_count$range %>%
   map(function(x){
     strsplit(x, ';')}) %>%
@@ -495,22 +515,22 @@ rangeseq <- total_count$range %>%
     as.numeric %>% na.omit()
   }) %>%
   map(function(x){
-    seq(sort(x)[1], sort(x)[2], by = .1)}) %>%
+    seq(floor(sort(x)[1] * 2)/2, floor(sort(x)[2]*2)/2, by = .5)}) %>%
     unlist()
 
 ggplot(data = data.frame(year = rangeseq),
        aes(x = year)) +
-  geom_histogram(binwidth=0.1, color="gray30") +
-  coord_cartesian(xlim=c(0, 15.3), ylim=c(0, 17),
-  expand = FALSE) +
+  geom_histogram(binwidth=0.5, color="gray30", fill = "gray70") +
+  coord_cartesian(xlim=c(0, 41), ylim=c(0, 17), expand = FALSE) +
+  scale_x_continuous(breaks = seq(0,40, by = 5)) +
+  scale_y_continuous(breaks = seq(0,16, by = 2)) +
   ggthemes::theme_tufte() +
-  scale_x_continuous(breaks = seq(1, 15, by = 2)) +
   theme(axis.title.x=element_text(size=18, face="bold.italic"),
         axis.title.y=element_text(size=18, face="bold.italic"),
         axis.text.x=element_text(size=14, face="bold"),
         axis.text.y=element_text(size=14, face="bold")) +
   xlab("Thousands of years before present (ka BP)") +
-  ylab("Papers with ranges including date (n = 81)")
+  ylab("Described ranges including date (n = 81)")
 
 ```
 
@@ -593,7 +613,6 @@ plotter <-  ggplot() +
 
 **Figure 5**: *Relative location of ages and spatial coordinates reported in GDD documents (i.e., are ages or spatial coordinates generally located at the beginning, middle, or end of a paper?).  The line segments above represent the approximate position of the term "Abstract", "Methods", etc. in papers, not the extent of those terms.*
 
-
 ##  8. Conclusions
 
 Here we have provided a model workflow to obtain coordinate and age information associated with IRD deposits, a GitHub Repository for open code development and sharing, and an R toolkit ([http://github.com/EarthCubeGeochron/geodiveR]()).  The specific case study showcased here is designed to help researchers study the dynamics of ice sheets over the last 5 million years, while GeoDeepDive and the post-processing analytical workflows shown here will be helpful to those wanting to query for space and time information using GeoDeepDive. This will allow other researchers to import their own data from their own search logic, and output text and coordinates relevant to a researcher's question. The GitHub Repository and R package can act as building blocks that serve researchers not only in the geosciences, but allied disciplines as well.
@@ -606,6 +625,6 @@ All data are publicly available at [http://github.com/EarthCubeGeoChron/IRDDive]
 Funding for this research was provided by the National Science Foundation (#EAR-1740694 to Goring, Marcott, Meyers, Peters, Singer, and Williams). The authors also acknowledge I. Ross, J. Czaplewski, A. Zaffos, E. Ito, and J. Husson for helpful discussions.
 
 ##  Author Contributions
-All authors contributed to study design. J.M., S.Y., and S.J.G. performed analysis and developed the GitHub repository and R package. J.M., S.J.G., and S.A.M. wrote the paper with input from the rest of the authors.
+All authors contributed to study design. S.J.G., J.M., and S.Y. performed analysis and developed the GitHub repository and R package. J.M., S.J.G., and S.A.M. wrote the paper with input from the rest of the authors.
 
 ## References
